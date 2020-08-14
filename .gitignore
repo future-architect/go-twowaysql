@@ -1,0 +1,10 @@
+# Binary
+server/bin
+*.zip
+*.exe
+**/bin/lambda
+**/bin/lambda.zip
+!*.go
+
+# Goland
+.idea
