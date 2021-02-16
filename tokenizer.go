@@ -17,6 +17,8 @@ type Token struct {
 	str  string
 }
 
+//tokenizeは文字列を受け取ってトークンの列を返す。
+//Token構造体をどのように設計するのが良いかはまだよく分からない
 func tokinize(str string) ([]Token, error) {
 	var tokens []Token
 
@@ -28,6 +30,7 @@ func tokinize(str string) ([]Token, error) {
 
 	for index < length {
 		if str[index:index+2] == "/*" {
+			//コメントの直前の塊をTKSQLStmtとしてappend
 			tokens = append(tokens, Token{
 				kind: TkSQLStmt,
 				str:  str[start:index],
@@ -35,7 +38,7 @@ func tokinize(str string) ([]Token, error) {
 			start = index
 			index += 2
 			token := Token{}
-			for index < length-1 && str[index:index+2] != "*/" {
+			for index < length && str[index:index+2] != "*/" {
 				if str[index:index+2] == "IF" {
 					token.kind = TkIf
 					index += 2
@@ -53,13 +56,17 @@ func tokinize(str string) ([]Token, error) {
 				}
 				index++
 			}
+			// */がなければ不正なフォーマット
 			if str[index:index+2] != "*/" {
 				return []Token{}, errors.New("can not tokenize")
 			}
+			index += 2
 			if token.kind == 0 {
 				token.kind = TkBind
+				for index < length && str[index] != ' ' {
+					index++
+				}
 			}
-			index += 2
 			token.str = str[start:index]
 			start = index
 			tokens = append(tokens, token)
