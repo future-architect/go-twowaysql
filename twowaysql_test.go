@@ -10,38 +10,38 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			name:  "if true",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
 		},
 		{
 			name:  "if false",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF false */ AND dept_no = 1`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF false */ AND dept_no = 1 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000`,
 		},
 		{
 			name:  "if true else",
-			input: `SELECT * FROM person WHERE employee_no < 1000  AND dept_no = /* IF true */ 1 /* ELSE */ 2`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = /* IF true */ 1 /* ELSE */ boss_no = 2 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
 		},
 		{
 			name:  "if false else",
-			input: `SELECT * FROM person WHERE employee_no < 1000  AND dept_no = /* IF false */ 1 /* ELSE */ 2`,
-			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 2`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = /* IF false */ 1 /* ELSE */ boss_no = 2 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND boss_no = 2`,
 		},
 		{
 			name:  "if true elif true else",
-			input: `SELECT * FROM person WHERE employee_no < 1000  AND dept_no = /* IF true */ 1 /* ELIF true */ 2 /* ELSE */ 3`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1 /* ELIF true */ AND boss_no = 2 /* ELSE */ AND id = 3 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
 		},
 		{
 			name:  "if false elif true else",
-			input: `SELECT * FROM person WHERE employee_no < 1000  AND dept_no = /* IF false */ 1 /* ELIF true */ 2 /* ELSE */ 3`,
-			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 2`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF false */ AND dept_no = 1 /* ELIF true */ AND boss_no = 2 /* ELSE */ AND id = 3 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND boss_no = 2`,
 		},
 		{
 			name:  "if false elif false else",
-			input: `SELECT * FROM person WHERE employee_no < 1000  AND dept_no = /* IF false */ 1 /* ELIF true */ 2 /* ELSE */ 3`,
-			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 3`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF false */ AND dept_no = 1 /* ELIF false */ AND boss_no = 2 /* ELSE */ AND id = 3 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND id = 3`,
 		},
 		{
 			name:  "bind parameter",

@@ -10,6 +10,7 @@ const (
 	TkElif
 	TkElse
 	TkBind
+	TkEnd
 )
 
 type Token struct {
@@ -52,6 +53,11 @@ func tokinize(str string) ([]Token, error) {
 				if str[index:index+4] == "ELSE" {
 					token.kind = TkElse
 					index += 4
+					continue
+				}
+				if str[index:index+3] == "END" {
+					token.kind = TkEnd
+					index += 3
 					continue
 				}
 				index++

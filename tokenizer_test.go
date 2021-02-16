@@ -27,7 +27,7 @@ func TestTokenize(t *testing.T) {
 		},
 		{
 			name:  "if",
-			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1",
+			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
 			want: []Token{
 				{
 					kind: TkSQLStmt,
@@ -41,11 +41,15 @@ func TestTokenize(t *testing.T) {
 					kind: TkSQLStmt,
 					str:  " AND dept_no = 1",
 				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
 			},
 		},
 		{
 			name:  "if and bind",
-			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF exists(deptNo)*/ AND dept_no = /*deptNo*/1",
+			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF exists(deptNo)*/ AND dept_no = /*deptNo*/1 /* END */",
 			want: []Token{
 				{
 					kind: TkSQLStmt,
@@ -71,15 +75,23 @@ func TestTokenize(t *testing.T) {
 					kind: TkBind,
 					str:  "/*deptNo*/1",
 				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
 			},
 		},
 		{
 			name:  "if elif else",
-			input: "SELECT * FROM person WHERE employee_no < 1000 AND dept_no = /* IF true */1/* ELIF true*/ 2 /*ELSE */ 3",
+			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */AND dept_no =1/* ELIF true*/ AND boss_no = 2 /*ELSE */ AND id=3/* END */",
 			want: []Token{
 				{
 					kind: TkSQLStmt,
-					str:  "SELECT * FROM person WHERE employee_no < 1000 AND dept_no = ",
+					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
 					kind: TkIf,
@@ -87,7 +99,7 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind: TkSQLStmt,
-					str:  "1",
+					str:  "AND dept_no =1",
 				},
 				{
 					kind: TkElif,
@@ -95,7 +107,7 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind: TkSQLStmt,
-					str:  " 2 ",
+					str:  " AND boss_no = 2 ",
 				},
 				{
 					kind: TkElse,
@@ -103,7 +115,11 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind: TkSQLStmt,
-					str:  " 3",
+					str:  " AND id=3",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
 				},
 			},
 		},
