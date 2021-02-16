@@ -1,6 +1,7 @@
 package twowaysql
 
 import (
+	"reflect"
 	"testing"
 )
 
@@ -16,7 +17,7 @@ func TestTokenize(t *testing.T) {
 			want: []Token{
 				{
 					kind: TkSQLStmt,
-					str:  "SELECT * FROM person WHERE employee_no ",
+					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
 					kind: TkIf,
@@ -32,15 +33,19 @@ func TestTokenize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got := tokinize(tt.input); !tokensEqual(tt.want, got) {
-				t.Errorf("Doesn't Match\n expected: %v, but got: %v\n", tt.want, got)
+			if got, err := tokinize(tt.input); err != nil || !tokensEqual(tt.want, got) {
+				if err != nil {
+					t.Error(err)
+				}
+				t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
 			}
 		})
 	}
 }
 
 func TestTry(t *testing.T) {
-	//t.Errorf("%v", TkIf)
+	str := "Hello, World!"
+	t.Errorf("%v", reflect.TypeOf(str[1:4]))
 }
 
 func tokensEqual(want, got []Token) bool {
