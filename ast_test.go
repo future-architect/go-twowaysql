@@ -13,6 +13,28 @@ func TestAst(t *testing.T) {
 		want  *Tree
 	}{
 		{
+			name: "empty",
+			input: []Token{
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+			want: makeEmpty(),
+		},
+		{
+			name: "no comment",
+			input: []Token{
+				{
+					kind: TkSQLStmt,
+					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
+				},
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+			want: makeNoComment(),
+		},
+		{
 			name: "if",
 			input: []Token{
 				{
@@ -77,6 +99,47 @@ func TestAst(t *testing.T) {
 				},
 			},
 			want: makeTreeIfBind(),
+		},
+		{
+			name: "if elif else",
+			input: []Token{
+				{
+					kind: TkSQLStmt,
+					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF true */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  "AND dept_no =1",
+				},
+				{
+					kind: TkElif,
+					str:  "/* ELIF true*/",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND boss_no = 2 ",
+				},
+				{
+					kind: TkElse,
+					str:  "/*ELSE */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND id=3",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+			want: makeIfElifElse(),
 		},
 	}
 
@@ -167,6 +230,37 @@ func printWalkInner(t *Tree) {
 	printWalkInner(t.Left)
 	fmt.Println(t.Token)
 	printWalkInner(t.Right)
+}
+
+// テストの期待する結果を作成
+func makeEmpty() *Tree {
+	NdEndOfProgram1 := Tree{
+		Kind: NdEndOfProgram,
+		Token: &Token{
+			kind: TkEndOfProgram,
+		},
+	}
+	return &NdEndOfProgram1
+
+}
+
+func makeNoComment() *Tree {
+	NdEndOfProgram1 := Tree{
+		Kind: NdEndOfProgram,
+		Token: &Token{
+			kind: TkEndOfProgram,
+		},
+	}
+	NdSQLStmt1 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdEndOfProgram1,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
+		},
+	}
+	return &NdSQLStmt1
+
 }
 
 func makeTreeIf() *Tree {
@@ -286,6 +380,80 @@ func makeTreeIfBind() *Tree {
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < ",
+		},
+	}
+	return &NdSQLStmt1
+}
+
+func makeIfElifElse() *Tree {
+	NdEndOfProgram1 := Tree{
+		Kind: NdEndOfProgram,
+		Token: &Token{
+			kind: TkEndOfProgram,
+		},
+	}
+	NdEnd1 := Tree{
+		Kind: NdEnd,
+		Left: &NdEndOfProgram1,
+		Token: &Token{
+			kind: TkEnd,
+			str:  "/* END */",
+		},
+	}
+	NdSQLStmt4 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND id=3",
+		},
+	}
+	NdElse1 := Tree{
+		Kind:  NdElse,
+		Left:  &NdSQLStmt4,
+		Right: &NdEnd1,
+		Token: &Token{
+			kind: TkElse,
+			str:  "/*ELSE */",
+		},
+	}
+	NdSQLStmt3 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND boss_no = 2 ",
+		},
+	}
+	NdElif1 := Tree{
+		Kind:  NdElif,
+		Left:  &NdSQLStmt3,
+		Right: &NdElse1,
+		Token: &Token{
+			kind: TkElif,
+			str:  "/* ELIF true*/",
+		},
+	}
+	NdSQLStmt2 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  "AND dept_no =1",
+		},
+	}
+	NdIf1 := Tree{
+		Kind:  NdIf,
+		Left:  &NdSQLStmt2,
+		Right: &NdElif1,
+		Token: &Token{
+			kind: TkIf,
+			str:  "/* IF true */",
+		},
+	}
+	NdSQLStmt1 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdIf1,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
 	return &NdSQLStmt1
