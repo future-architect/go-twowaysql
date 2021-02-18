@@ -10,7 +10,7 @@ func TestAst(t *testing.T) {
 	tests := []struct {
 		name  string
 		input []Token
-		want  []*Tree
+		want  *Tree
 	}{
 		{
 			name: "if",
@@ -35,25 +35,62 @@ func TestAst(t *testing.T) {
 					kind: TkEndOfProgram,
 				},
 			},
-			want: makeTreesif(),
+			want: makeTreeif(),
+		},
+		{
+			name: "if and bind",
+			input: []Token{
+				{
+					kind: TkSQLStmt,
+					str:  "SELECT * FROM person WHERE employee_no < ",
+				},
+				{
+					kind: TkBind,
+					str:  "/*maxEmpNo*/999",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF exists(deptNo)*/",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND dept_no = ",
+				},
+				{
+					kind: TkBind,
+					str:  "/*deptNo*/0",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+			want: nil,
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := ast(tt.input); err != nil || !treesEqual(tt.want, got) {
+			if got, err := ast(tt.input); err != nil || !treeEqual(tt.want, got) {
 				if err != nil {
 					t.Error(err)
 				}
 				t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
 				fmt.Println("want:")
-				for _, tree := range tt.want {
-					printTree(tree)
-				}
+				printTree(tt.want)
 				fmt.Println("got:")
-				for _, tree := range got {
-					printTree(tree)
-				}
+				printTree(got)
 			}
 		})
 	}
@@ -82,32 +119,27 @@ func walkInner(t *Tree, ch chan *Token) {
 	walkInner(t.Right, ch)
 }
 
-func treesEqual(ts1, ts2 []*Tree) bool {
-	if len(ts1) != len(ts2) {
-		return false
+func treeEqual(t1, t2 *Tree) bool {
+	ch1 := make(chan *Token)
+	ch2 := make(chan *Token)
+
+	go walk(t1, ch1)
+	go walk(t2, ch2)
+
+	var s1, s2 []*Token
+
+	for n := range ch1 {
+		s1 = append(s1, n)
 	}
-	for i := 0; i < len(ts1); i++ {
-		ch1 := make(chan *Token)
-		ch2 := make(chan *Token)
+	for n := range ch2 {
+		s2 = append(s2, n)
+	}
 
-		go walk(ts1[i], ch1)
-		go walk(ts2[i], ch2)
-
-		var s1, s2 []*Token
-
-		for n := range ch1 {
-			s1 = append(s1, n)
-		}
-		for n := range ch2 {
-			s2 = append(s2, n)
-		}
-
-		if len(s1) == len(s2) {
-			for i := 0; i < len(s1); i++ {
-				if *s1[i] != *s2[i] {
-					fmt.Printf("not macth %v != %v\n", s1[i], s2[i])
-					return false
-				}
+	if len(s1) == len(s2) {
+		for i := 0; i < len(s1); i++ {
+			if *s1[i] != *s2[i] {
+				fmt.Printf("not macth %v != %v\n", s1[i], s2[i])
+				return false
 			}
 		}
 	}
@@ -135,7 +167,7 @@ func printWalkInner(t *Tree) {
 	printWalkInner(t.Right)
 }
 
-func makeTreesif() []*Tree {
+func makeTreeif() *Tree {
 
 	NdEndOfProgram1 := Tree{
 		Kind: NdEndOfProgram,
@@ -146,6 +178,7 @@ func makeTreesif() []*Tree {
 
 	NdEnd1 := Tree{
 		Kind: NdEnd,
+		Left: &NdEndOfProgram1,
 		Token: &Token{
 			kind: TkEnd,
 			str:  "/* END */",
@@ -172,14 +205,12 @@ func makeTreesif() []*Tree {
 
 	NdSQLstmt1 := Tree{
 		Kind: NdSQLstmt,
+		Left: &NdIf1,
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
 
-	var trees []*Tree
-	trees = append(trees, &NdSQLstmt1, &NdIf1, &NdEndOfProgram1)
-
-	return trees
+	return &NdSQLstmt1
 }
