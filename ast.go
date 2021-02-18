@@ -28,8 +28,8 @@ type Tree struct {
 // program = stmt
 // stmt = 	SQLStmt stmt |
 //			BIND	stmt |
-//			EndOfProgram |
-//		  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
+//		  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt |
+//			EndOfProgram
 //
 func ast(tokens []Token) (*Tree, error) {
 	node, err := program(tokens)
@@ -54,10 +54,12 @@ func program(tokens []Token) (*Tree, error) {
 }
 
 // token index token[index]を見ている
+// 課題：不正な形式でもエラーが返らないと思う。ただ正しくない結果が返ってくる
 func stmt(tokens []Token, index *int) (*Tree, error) {
 	var node *Tree
 	var err error
 	if consume(tokens, index, TkSQLStmt) {
+		// SQLStmt stmt
 		node = &Tree{
 			Kind:  NdSQLStmt,
 			Token: &tokens[*index-1],
@@ -69,6 +71,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 		}
 
 	} else if consume(tokens, index, TkBind) {
+		// Bind stmt
 		node = &Tree{
 			Kind:  NdBind,
 			Token: &tokens[*index-1],
@@ -79,12 +82,14 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			return nil, err
 		}
 	} else if consume(tokens, index, TkEndOfProgram) {
+		// EndOfProgram
 		node = &Tree{
 			Kind:  NodeKind(TkEndOfProgram),
 			Token: &tokens[*index-1],
 		}
 		return node, nil
 	} else if consume(tokens, index, TkIf) {
+		//"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
 		node = &Tree{
 			Kind:  NdIf,
 			Token: &tokens[*index-1],
@@ -95,6 +100,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 		}
 		tmpNode := node
 		for {
+			//("ELLF" stmt)*
 			if consume(tokens, index, TkElif) {
 				child := &Tree{
 					Kind:  NdElif,
@@ -112,6 +118,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			break
 		}
 		if consume(tokens, index, TkElse) {
+			//("ELSE" stmt)?
 			child := &Tree{
 				Kind:  NdElse,
 				Token: &tokens[*index-1],
@@ -126,6 +133,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 		}
 
 		if consume(tokens, index, TkEnd) {
+			//"END"
 			child := &Tree{
 				Kind:  NdEnd,
 				Token: &tokens[*index-1],
@@ -140,11 +148,13 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			return nil, fmt.Errorf("can not parse: expected /* END */, but got %v", tokens[*index].kind)
 		}
 
+		//どれも一致しなかった
 		return node, nil
 	}
 	return node, nil
 }
 
+//tokenが所望のものか調べる。一致していればインデックスを一つ進める
 func consume(tokens []Token, index *int, kind TokenKind) bool {
 	if tokens[*index].kind == kind {
 		*index++
