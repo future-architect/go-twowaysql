@@ -141,6 +141,63 @@ func TestAst(t *testing.T) {
 			},
 			want: makeIfElifElse(),
 		},
+		{
+			name: "if nest",
+			input: []Token{
+				{
+					kind: TkSQLStmt,
+					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF true */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF false */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND dept_no =1 ",
+				},
+				{
+					kind: TkElse,
+					str:  "/* ELSE */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND id=3 ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkElse,
+					str:  "/* ELSE*/",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND boss_id=4 ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+			want: makeIfNest(),
+		},
 	}
 
 	for _, tt := range tests {
@@ -443,6 +500,112 @@ func makeIfElifElse() *Tree {
 		Kind:  NdIf,
 		Left:  &NdSQLStmt2,
 		Right: &NdElif1,
+		Token: &Token{
+			kind: TkIf,
+			str:  "/* IF true */",
+		},
+	}
+	NdSQLStmt1 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdIf1,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
+		},
+	}
+	return &NdSQLStmt1
+}
+
+func makeIfNest() *Tree {
+	NdEndOfProgram1 := Tree{
+		Kind: NdEndOfProgram,
+		Token: &Token{
+			kind: TkEndOfProgram,
+		},
+	}
+	NdEnd2 := Tree{
+		Kind: NdEnd,
+		Left: &NdEndOfProgram1,
+		Token: &Token{
+			kind: TkEnd,
+			str:  "/* END */",
+		},
+	}
+	NdSQLStmt6 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND boss_id=4 ",
+		},
+	}
+	NdElse2 := Tree{
+		Kind:  NdElse,
+		Left:  &NdSQLStmt6,
+		Right: &NdEnd2,
+		Token: &Token{
+			kind: TkElse,
+			str:  "/* ELSE*/",
+		},
+	}
+	NdSQLStmt5 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " ",
+		},
+	}
+	NdEnd1 := Tree{
+		Kind: NdEnd,
+		Left: &NdSQLStmt5,
+		Token: &Token{
+			kind: TkEnd,
+			str:  "/* END */",
+		},
+	}
+	NdSQLStmt4 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND id=3 ",
+		},
+	}
+	NdElse1 := Tree{
+		Kind:  NdElse,
+		Left:  &NdSQLStmt4,
+		Right: &NdEnd1,
+		Token: &Token{
+			kind: TkElse,
+			str:  "/* ELSE */",
+		},
+	}
+	NdSQLStmt3 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND dept_no =1 ",
+		},
+	}
+	NdIf2 := Tree{
+		Kind:  NdIf,
+		Left:  &NdSQLStmt3,
+		Right: &NdElse1,
+		Token: &Token{
+			kind: TkIf,
+			str:  "/* IF false */",
+		},
+	}
+	NdSQLStmt2 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdIf2,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " ",
+		},
+	}
+	NdIf1 := Tree{
+		Kind:  NdIf,
+		Left:  &NdSQLStmt2,
+		Right: &NdElse2,
 		Token: &Token{
 			kind: TkIf,
 			str:  "/* IF true */",
