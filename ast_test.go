@@ -35,7 +35,7 @@ func TestAst(t *testing.T) {
 					kind: TkEndOfProgram,
 				},
 			},
-			want: makeTreeif(),
+			want: makeTreeIf(),
 		},
 		{
 			name: "if and bind",
@@ -76,7 +76,7 @@ func TestAst(t *testing.T) {
 					kind: TkEndOfProgram,
 				},
 			},
-			want: nil,
+			want: makeTreeIfBind(),
 		},
 	}
 
@@ -98,6 +98,8 @@ func TestAst(t *testing.T) {
 }
 
 func walk(t *Tree, ch chan *Token) {
+	defer close(ch)
+
 	if t == nil {
 		return
 	}
@@ -106,7 +108,6 @@ func walk(t *Tree, ch chan *Token) {
 	ch <- t.Token
 	walkInner(t.Right, ch)
 
-	close(ch)
 }
 
 func walkInner(t *Tree, ch chan *Token) {
@@ -142,8 +143,9 @@ func treeEqual(t1, t2 *Tree) bool {
 				return false
 			}
 		}
+		return true
 	}
-	return true
+	return false
 }
 
 func printTree(t *Tree) {
@@ -167,7 +169,7 @@ func printWalkInner(t *Tree) {
 	printWalkInner(t.Right)
 }
 
-func makeTreeif() *Tree {
+func makeTreeIf() *Tree {
 
 	NdEndOfProgram1 := Tree{
 		Kind: NdEndOfProgram,
@@ -186,7 +188,7 @@ func makeTreeif() *Tree {
 	}
 
 	NdSQLstmt2 := Tree{
-		Kind: NdSQLstmt,
+		Kind: NdSQLStmt,
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  " AND dept_no = 1",
@@ -204,7 +206,7 @@ func makeTreeif() *Tree {
 	}
 
 	NdSQLstmt1 := Tree{
-		Kind: NdSQLstmt,
+		Kind: NdSQLStmt,
 		Left: &NdIf1,
 		Token: &Token{
 			kind: TkSQLStmt,
@@ -213,4 +215,78 @@ func makeTreeif() *Tree {
 	}
 
 	return &NdSQLstmt1
+}
+
+func makeTreeIfBind() *Tree {
+	NdEndOfProgram1 := Tree{
+		Kind: NdEndOfProgram,
+		Token: &Token{
+			kind: TkEndOfProgram,
+		},
+	}
+	NdEnd1 := Tree{
+		Kind: NdEnd,
+		Left: &NdEndOfProgram1,
+		Token: &Token{
+			kind: TkEnd,
+			str:  "/* END */",
+		},
+	}
+	NdSQLStmt4 := Tree{
+		Kind: NdSQLStmt,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " ",
+		},
+	}
+	NdBind2 := Tree{
+		Kind: NdBind,
+		Left: &NdSQLStmt4,
+		Token: &Token{
+			kind: TkBind,
+			str:  "/*deptNo*/0",
+		},
+	}
+	NdSQLStmt3 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdBind2,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " AND dept_no = ",
+		},
+	}
+	NdIf1 := Tree{
+		Kind:  NdIf,
+		Left:  &NdSQLStmt3,
+		Right: &NdEnd1,
+		Token: &Token{
+			kind: TkIf,
+			str:  "/* IF exists(deptNo)*/",
+		},
+	}
+	NdSQLStmt2 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdIf1,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  " ",
+		},
+	}
+	NdBind1 := Tree{
+		Kind: NdBind,
+		Left: &NdSQLStmt2,
+		Token: &Token{
+			kind: TkBind,
+			str:  "/*maxEmpNo*/999",
+		},
+	}
+	NdSQLStmt1 := Tree{
+		Kind: NdSQLStmt,
+		Left: &NdBind1,
+		Token: &Token{
+			kind: TkSQLStmt,
+			str:  "SELECT * FROM person WHERE employee_no < ",
+		},
+	}
+	return &NdSQLStmt1
 }

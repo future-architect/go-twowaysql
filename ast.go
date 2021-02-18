@@ -7,7 +7,7 @@ import (
 type NodeKind int
 
 const (
-	NdSQLstmt NodeKind = iota + 1
+	NdSQLStmt NodeKind = iota + 1
 	NdBind
 	NdIf
 	NdElif
@@ -59,7 +59,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 	var err error
 	if consume(tokens, index, TkSQLStmt) {
 		node = &Tree{
-			Kind:  NdSQLstmt,
+			Kind:  NdSQLStmt,
 			Token: &tokens[*index-1],
 		}
 
