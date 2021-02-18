@@ -9,8 +9,8 @@ const (
 	TkIf
 	TkElif
 	TkElse
-	TkBind
 	TkEnd
+	TkBind
 )
 
 type Token struct {
