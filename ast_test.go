@@ -5,6 +5,7 @@ import (
 	"testing"
 )
 
+//　課題: テストケースの準備(Treeの作成)に手間がかかる
 func TestAst(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -42,7 +43,9 @@ func TestAst(t *testing.T) {
 					t.Error(err)
 				}
 				t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
+				fmt.Println("want:")
 				printTree(tt.want)
+				fmt.Println("got:")
 				printTree(got)
 			}
 		})
