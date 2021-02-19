@@ -6,35 +6,48 @@ package twowaysql
 // 左部分木、右部分木と辿る
 // この設計は適切なのだろうか?
 // skipがtrueならappendしない。
-func gen(trees *Tree, skip bool) (string, error) {
-	if trees == nil {
-		return "", nil
-	}
-	res := ""
-	node := trees
-
-	str, err := gen(node.Left, skip)
+func gen(trees *Tree) (string, error) {
+	res, err := genInner(trees, "", false)
 	if err != nil {
 		return "", err
 	}
+	return res, nil
+}
+
+func genInner(node *Tree, res string, skip bool) (string, error) {
+	if node == nil {
+		return "", nil
+	}
+
 	switch kind := node.Kind; kind {
 	case NdSQLStmt:
-		res = appendIfNotSkip(res, str, skip)
+		res = appendIfNotSkip(res, node.Token.str, skip)
+		//fmt.Println("SQLstmt: ", res)
 	case NdBind:
-		res = appendIfNotSkip(res, bindConvert(str), skip)
+		res = appendIfNotSkip(res, bindConvert(node.Token.str), skip)
+	case NdEnd:
+		skip = false
+	default:
+	}
+
+	//左部分木に行く
+	str, err := genInner(node.Left, res, skip)
+	if err != nil {
+		return "", err
+	}
+
+	switch kind := node.Kind; kind {
 	case NdIf, NdElif:
 		if evalCondition(node.Token.str) {
 			res = appendIfNotSkip(res, str, skip)
 			//ENDが来るまで右部分木をSKIP
 			skip = true
 		}
-	case NdElse:
-	case NdEnd:
-		skip = false
-	case NdEndOfProgram:
+	default:
 	}
 
-	str, err = gen(node.Right, skip)
+	//右部分木に行く
+	str, err = genInner(node.Right, res, skip)
 	if err != nil {
 		return "", err
 	}

@@ -1,6 +1,8 @@
 package twowaysql
 
-import "testing"
+import (
+	"testing"
+)
 
 func TestGen(t *testing.T) {
 	tests := []struct {
@@ -42,7 +44,7 @@ func TestGen(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := gen(tt.input, false); err != nil || got != tt.want {
+			if got, err := gen(tt.input); err != nil || got != tt.want {
 				if err != nil {
 					t.Error(err)
 				}
@@ -52,6 +54,17 @@ func TestGen(t *testing.T) {
 			}
 		})
 	}
+}
+
+func TestExperiment(t *testing.T) {
+	//input := makeIfElifElse()
+	input := makeNoComment()
+
+	res, err := gen(input)
+	if err != nil {
+		t.Error(err)
+	}
+	t.Error(res)
 }
 
 func sliceEqual(a, b []string) bool {
