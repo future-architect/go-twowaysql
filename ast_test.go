@@ -76,7 +76,7 @@ func TestAst(t *testing.T) {
 				},
 				{
 					kind: TkIf,
-					str:  "/* IF exists(deptNo)*/",
+					str:  "/* IF false */",
 				},
 				{
 					kind: TkSQLStmt,
@@ -204,7 +204,7 @@ func TestAst(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := ast(tt.input); err != nil || !treeEqual(tt.want, got) {
 				if err != nil {
-					t.Error(err)
+					t.Log(err)
 				}
 				t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
 				fmt.Println("want:")
@@ -404,7 +404,7 @@ func makeTreeIfBind() *Tree {
 					},
 					Token: &Token{
 						kind: TkIf,
-						str:  "/* IF exists(deptNo)*/",
+						str:  "/* IF false */",
 					},
 				},
 				Token: &Token{
