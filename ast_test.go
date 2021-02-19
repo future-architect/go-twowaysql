@@ -302,15 +302,14 @@ func makeEmpty() *Tree {
 }
 
 func makeNoComment() *Tree {
-	NdEndOfProgram1 := Tree{
-		Kind: NdEndOfProgram,
-		Token: &Token{
-			kind: TkEndOfProgram,
-		},
-	}
 	NdSQLStmt1 := Tree{
 		Kind: NdSQLStmt,
-		Left: &NdEndOfProgram1,
+		Left: &Tree{
+			Kind: NdEndOfProgram,
+			Token: &Token{
+				kind: TkEndOfProgram,
+			},
+		},
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
@@ -322,43 +321,35 @@ func makeNoComment() *Tree {
 
 func makeTreeIf() *Tree {
 
-	NdEndOfProgram1 := Tree{
-		Kind: NdEndOfProgram,
-		Token: &Token{
-			kind: TkEndOfProgram,
-		},
-	}
-
-	NdEnd1 := Tree{
-		Kind: NdEnd,
-		Left: &NdEndOfProgram1,
-		Token: &Token{
-			kind: TkEnd,
-			str:  "/* END */",
-		},
-	}
-
-	NdSQLstmt2 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND dept_no = 1",
-		},
-	}
-
-	NdIf1 := Tree{
-		Kind:  NdIf,
-		Left:  &NdSQLstmt2,
-		Right: &NdEnd1,
-		Token: &Token{
-			kind: TkIf,
-			str:  "/* IF true */",
-		},
-	}
-
 	NdSQLstmt1 := Tree{
 		Kind: NdSQLStmt,
-		Left: &NdIf1,
+		Left: &Tree{
+			Kind: NdIf,
+			Left: &Tree{
+				Kind: NdSQLStmt,
+				Token: &Token{
+					kind: TkSQLStmt,
+					str:  " AND dept_no = 1",
+				},
+			},
+			Right: &Tree{
+				Kind: NdEnd,
+				Left: &Tree{
+					Kind: NdEndOfProgram,
+					Token: &Token{
+						kind: TkEndOfProgram,
+					},
+				},
+				Token: &Token{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+			},
+			Token: &Token{
+				kind: TkIf,
+				str:  "/* IF true */",
+			},
+		},
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -369,71 +360,63 @@ func makeTreeIf() *Tree {
 }
 
 func makeTreeIfBind() *Tree {
-	NdEndOfProgram1 := Tree{
-		Kind: NdEndOfProgram,
-		Token: &Token{
-			kind: TkEndOfProgram,
-		},
-	}
-	NdEnd1 := Tree{
-		Kind: NdEnd,
-		Left: &NdEndOfProgram1,
-		Token: &Token{
-			kind: TkEnd,
-			str:  "/* END */",
-		},
-	}
-	NdSQLStmt4 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " ",
-		},
-	}
-	NdBind2 := Tree{
-		Kind: NdBind,
-		Left: &NdSQLStmt4,
-		Token: &Token{
-			kind: TkBind,
-			str:  "/*deptNo*/0",
-		},
-	}
-	NdSQLStmt3 := Tree{
-		Kind: NdSQLStmt,
-		Left: &NdBind2,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND dept_no = ",
-		},
-	}
-	NdIf1 := Tree{
-		Kind:  NdIf,
-		Left:  &NdSQLStmt3,
-		Right: &NdEnd1,
-		Token: &Token{
-			kind: TkIf,
-			str:  "/* IF exists(deptNo)*/",
-		},
-	}
-	NdSQLStmt2 := Tree{
-		Kind: NdSQLStmt,
-		Left: &NdIf1,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " ",
-		},
-	}
-	NdBind1 := Tree{
-		Kind: NdBind,
-		Left: &NdSQLStmt2,
-		Token: &Token{
-			kind: TkBind,
-			str:  "/*maxEmpNo*/999",
-		},
-	}
 	NdSQLStmt1 := Tree{
 		Kind: NdSQLStmt,
-		Left: &NdBind1,
+		Left: &Tree{
+			Kind: NdBind,
+			Left: &Tree{
+				Kind: NdSQLStmt,
+				Left: &Tree{
+					Kind: NdIf,
+					Left: &Tree{
+						Kind: NdSQLStmt,
+						Left: &Tree{
+							Kind: NdBind,
+							Left: &Tree{
+								Kind: NdSQLStmt,
+								Token: &Token{
+									kind: TkSQLStmt,
+									str:  " ",
+								},
+							},
+							Token: &Token{
+								kind: TkBind,
+								str:  "/*deptNo*/0",
+							},
+						},
+						Token: &Token{
+							kind: TkSQLStmt,
+							str:  " AND dept_no = ",
+						},
+					},
+					Right: &Tree{
+						Kind: NdEnd,
+						Left: &Tree{
+							Kind: NdEndOfProgram,
+							Token: &Token{
+								kind: TkEndOfProgram,
+							},
+						},
+						Token: &Token{
+							kind: TkEnd,
+							str:  "/* END */",
+						},
+					},
+					Token: &Token{
+						kind: TkIf,
+						str:  "/* IF exists(deptNo)*/",
+					},
+				},
+				Token: &Token{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+			},
+			Token: &Token{
+				kind: TkBind,
+				str:  "/*maxEmpNo*/999",
+			},
+		},
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < ",
@@ -443,71 +426,63 @@ func makeTreeIfBind() *Tree {
 }
 
 func makeIfElifElse() *Tree {
-	NdEndOfProgram1 := Tree{
-		Kind: NdEndOfProgram,
-		Token: &Token{
-			kind: TkEndOfProgram,
-		},
-	}
-	NdEnd1 := Tree{
-		Kind: NdEnd,
-		Left: &NdEndOfProgram1,
-		Token: &Token{
-			kind: TkEnd,
-			str:  "/* END */",
-		},
-	}
-	NdSQLStmt4 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND id=3",
-		},
-	}
-	NdElse1 := Tree{
-		Kind:  NdElse,
-		Left:  &NdSQLStmt4,
-		Right: &NdEnd1,
-		Token: &Token{
-			kind: TkElse,
-			str:  "/*ELSE */",
-		},
-	}
-	NdSQLStmt3 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND boss_no = 2 ",
-		},
-	}
-	NdElif1 := Tree{
-		Kind:  NdElif,
-		Left:  &NdSQLStmt3,
-		Right: &NdElse1,
-		Token: &Token{
-			kind: TkElif,
-			str:  "/* ELIF true*/",
-		},
-	}
-	NdSQLStmt2 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  "AND dept_no =1",
-		},
-	}
-	NdIf1 := Tree{
-		Kind:  NdIf,
-		Left:  &NdSQLStmt2,
-		Right: &NdElif1,
-		Token: &Token{
-			kind: TkIf,
-			str:  "/* IF true */",
-		},
-	}
 	NdSQLStmt1 := Tree{
 		Kind: NdSQLStmt,
-		Left: &NdIf1,
+		Left: &Tree{
+			Kind: NdIf,
+			Left: &Tree{
+				Kind: NdSQLStmt,
+				Token: &Token{
+					kind: TkSQLStmt,
+					str:  "AND dept_no =1",
+				},
+			},
+			Right: &Tree{
+				Kind: NdElif,
+				Left: &Tree{
+					Kind: NdSQLStmt,
+					Token: &Token{
+						kind: TkSQLStmt,
+						str:  " AND boss_no = 2 ",
+					},
+				},
+				Right: &Tree{
+					Kind: NdElse,
+					Left: &Tree{
+						Kind: NdSQLStmt,
+						Token: &Token{
+							kind: TkSQLStmt,
+							str:  " AND id=3",
+						},
+					},
+					Right: &Tree{
+						Kind: NdEnd,
+						Left: &Tree{
+							Kind: NdEndOfProgram,
+							Token: &Token{
+								kind: TkEndOfProgram,
+							},
+						},
+						Token: &Token{
+							kind: TkEnd,
+							str:  "/* END */",
+						},
+					},
+					Token: &Token{
+						kind: TkElse,
+						str:  "/*ELSE */",
+					},
+				},
+				Token: &Token{
+					kind: TkElif,
+					str:  "/* ELIF true*/",
+				},
+			},
+			Token: &Token{
+				kind: TkIf,
+				str:  "/* IF true */",
+			},
+		},
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -517,103 +492,91 @@ func makeIfElifElse() *Tree {
 }
 
 func makeIfNest() *Tree {
-	NdEndOfProgram1 := Tree{
-		Kind: NdEndOfProgram,
-		Token: &Token{
-			kind: TkEndOfProgram,
-		},
-	}
-	NdEnd2 := Tree{
-		Kind: NdEnd,
-		Left: &NdEndOfProgram1,
-		Token: &Token{
-			kind: TkEnd,
-			str:  "/* END */",
-		},
-	}
-	NdSQLStmt6 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND boss_id=4 ",
-		},
-	}
-	NdElse2 := Tree{
-		Kind:  NdElse,
-		Left:  &NdSQLStmt6,
-		Right: &NdEnd2,
-		Token: &Token{
-			kind: TkElse,
-			str:  "/* ELSE*/",
-		},
-	}
-	NdSQLStmt5 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " ",
-		},
-	}
-	NdEnd1 := Tree{
-		Kind: NdEnd,
-		Left: &NdSQLStmt5,
-		Token: &Token{
-			kind: TkEnd,
-			str:  "/* END */",
-		},
-	}
-	NdSQLStmt4 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND id=3 ",
-		},
-	}
-	NdElse1 := Tree{
-		Kind:  NdElse,
-		Left:  &NdSQLStmt4,
-		Right: &NdEnd1,
-		Token: &Token{
-			kind: TkElse,
-			str:  "/* ELSE */",
-		},
-	}
-	NdSQLStmt3 := Tree{
-		Kind: NdSQLStmt,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " AND dept_no =1 ",
-		},
-	}
-	NdIf2 := Tree{
-		Kind:  NdIf,
-		Left:  &NdSQLStmt3,
-		Right: &NdElse1,
-		Token: &Token{
-			kind: TkIf,
-			str:  "/* IF false */",
-		},
-	}
-	NdSQLStmt2 := Tree{
-		Kind: NdSQLStmt,
-		Left: &NdIf2,
-		Token: &Token{
-			kind: TkSQLStmt,
-			str:  " ",
-		},
-	}
-	NdIf1 := Tree{
-		Kind:  NdIf,
-		Left:  &NdSQLStmt2,
-		Right: &NdElse2,
-		Token: &Token{
-			kind: TkIf,
-			str:  "/* IF true */",
-		},
-	}
 	NdSQLStmt1 := Tree{
 		Kind: NdSQLStmt,
-		Left: &NdIf1,
+		Left: &Tree{
+			Kind: NdIf,
+			Left: &Tree{
+				Kind: NdSQLStmt,
+				Left: &Tree{
+					Kind: NdIf,
+					Left: &Tree{
+						Kind: NdSQLStmt,
+						Token: &Token{
+							kind: TkSQLStmt,
+							str:  " AND dept_no =1 ",
+						},
+					},
+					Right: &Tree{
+						Kind: NdElse,
+						Left: &Tree{
+							Kind: NdSQLStmt,
+							Token: &Token{
+								kind: TkSQLStmt,
+								str:  " AND id=3 ",
+							},
+						},
+						Right: &Tree{
+							Kind: NdEnd,
+							Left: &Tree{
+								Kind: NdSQLStmt,
+								Token: &Token{
+									kind: TkSQLStmt,
+									str:  " ",
+								},
+							},
+							Token: &Token{
+								kind: TkEnd,
+								str:  "/* END */",
+							},
+						},
+						Token: &Token{
+							kind: TkElse,
+							str:  "/* ELSE */",
+						},
+					},
+					Token: &Token{
+						kind: TkIf,
+						str:  "/* IF false */",
+					},
+				},
+				Token: &Token{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+			},
+			Right: &Tree{
+				Kind: NdElse,
+				Left: &Tree{
+					Kind: NdSQLStmt,
+					Token: &Token{
+						kind: TkSQLStmt,
+						str:  " AND boss_id=4 ",
+					},
+				},
+				Right: &Tree{
+					Kind: NdEnd,
+					Left: &Tree{
+						Kind: NdEndOfProgram,
+						Token: &Token{
+							kind: TkEndOfProgram,
+						},
+					},
+					Token: &Token{
+						kind: TkEnd,
+						str:  "/* END */",
+					},
+				},
+				Token: &Token{
+					kind: TkElse,
+					str:  "/* ELSE*/",
+				},
+			},
+			Token: &Token{
+				kind: TkIf,
+				str:  "/* IF true */",
+			},
+		},
 		Token: &Token{
 			kind: TkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
