@@ -18,12 +18,12 @@ func TestGen(t *testing.T) {
 		{
 			name:  "no comment",
 			input: makeNoComment(),
-			want:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
+			want:  "SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1",
 		},
 		{
 			name:  "if",
 			input: makeTreeIf(),
-			want:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
+			want:  "SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1",
 		},
 		{
 			name:  "if and bind",
@@ -38,7 +38,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if nest",
 			input: makeIfNest(),
-			want:  "SELECT * FROM person WHERE employee_no < 1000 /* IF true */  AND id=3",
+			want:  "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND id=3",
 		},
 	}
 

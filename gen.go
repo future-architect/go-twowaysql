@@ -1,5 +1,7 @@
 package twowaysql
 
+import "bytes"
+
 // 抽象構文木から目標文字列を生成
 // 欲しいサブ関数: 空白調整、if,elifの評価、
 // バインド抽出は別のパスにする
@@ -20,24 +22,12 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 	}
 
 	//行きがけ
-	/*
-		switch kind := node.Kind; kind {
-		case NdSQLStmt:
-			unsettled += node.Token.str
-		case NdBind:
-			unsettled += bindConvert(node.Token.str)
-		case NdEnd:
-			skip = false
-		default:
-		}
-	*/
 
 	//左部分木に行く
 	leftStr, err := genInner(node.Left, unsettled, skip)
 	if err != nil {
 		return "", err
 	}
-	//fmt.Println("str: ", node.Token.str, "leftStr:", leftStr)
 
 	// 戻ってきた
 
@@ -47,7 +37,9 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 		return "", err
 	}
 
-	// IF, ELIFのチェック
+	// 何を返すか
+	// 基本的に左部分木
+	// If Elifの場合は条件次第
 	switch kind := node.Kind; kind {
 	case NdSQLStmt:
 		return node.Token.str + leftStr, nil
@@ -55,15 +47,12 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
 		if evalCondition(removeCommentSymbol(node.Token.str)) {
-			//fmt.Println("leftStr:", leftStr)
 			return leftStr, nil
-		} else {
-			return rightStr, nil
 		}
+		return rightStr, nil
 	default:
+		return leftStr, nil
 	}
-
-	return leftStr, nil
 }
 
 func appendIfNotSkip(s1, s2 string, skip bool) string {
@@ -83,9 +72,19 @@ func evalCondition(str string) bool {
 	return true
 }
 
-//空白を調整する
+// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできないる
+// 単純な空白を想定。 -> issue よりロバストな実装
 func arrageWhiteSpace(str string) string {
-	return str
+	ret := ""
+	buff := bytes.NewBufferString(ret)
+	for i := 0; i < len(str); i++ {
+		if i < len(str)-1 && str[i] == ' ' && str[i+1] == ' ' {
+			//do nothing
+		} else {
+			buff.WriteByte(str[i])
+		}
+	}
+	return buff.String()
 }
 
 // /* */記号の削除
