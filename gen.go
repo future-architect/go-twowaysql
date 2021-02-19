@@ -5,54 +5,65 @@ package twowaysql
 // バインド抽出は別のパスにする
 // 左部分木、右部分木と辿る
 // この設計は適切なのだろうか?
-// skipがtrueならappendしない。
+// 右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree) (string, error) {
 	res, err := genInner(trees, "", false)
 	if err != nil {
 		return "", err
 	}
-	return res, nil
+	return arrageWhiteSpace(res), nil
 }
 
-func genInner(node *Tree, res string, skip bool) (string, error) {
+func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 	if node == nil {
 		return "", nil
 	}
 
-	switch kind := node.Kind; kind {
-	case NdSQLStmt:
-		res = appendIfNotSkip(res, node.Token.str, skip)
-		//fmt.Println("SQLstmt: ", res)
-	case NdBind:
-		res = appendIfNotSkip(res, bindConvert(node.Token.str), skip)
-	case NdEnd:
-		skip = false
-	default:
-	}
+	//行きがけ
+	/*
+		switch kind := node.Kind; kind {
+		case NdSQLStmt:
+			unsettled += node.Token.str
+		case NdBind:
+			unsettled += bindConvert(node.Token.str)
+		case NdEnd:
+			skip = false
+		default:
+		}
+	*/
 
 	//左部分木に行く
-	str, err := genInner(node.Left, res, skip)
+	leftStr, err := genInner(node.Left, unsettled, skip)
+	if err != nil {
+		return "", err
+	}
+	//fmt.Println("str: ", node.Token.str, "leftStr:", leftStr)
+
+	// 戻ってきた
+
+	//右部分木に行く
+	rightStr, err := genInner(node.Right, unsettled, skip)
 	if err != nil {
 		return "", err
 	}
 
+	// IF, ELIFのチェック
 	switch kind := node.Kind; kind {
+	case NdSQLStmt:
+		return node.Token.str + leftStr, nil
+	case NdBind:
+		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
-		if evalCondition(node.Token.str) {
-			res = appendIfNotSkip(res, str, skip)
-			//ENDが来るまで右部分木をSKIP
-			skip = true
+		if evalCondition(removeCommentSymbol(node.Token.str)) {
+			//fmt.Println("leftStr:", leftStr)
+			return leftStr, nil
+		} else {
+			return rightStr, nil
 		}
 	default:
 	}
 
-	//右部分木に行く
-	str, err = genInner(node.Right, res, skip)
-	if err != nil {
-		return "", err
-	}
-
-	return res, nil
+	return leftStr, nil
 }
 
 func appendIfNotSkip(s1, s2 string, skip bool) string {
@@ -70,4 +81,14 @@ func bindConvert(str string) string {
 // /* If ... */ /* Elif ... */の条件を評価する
 func evalCondition(str string) bool {
 	return true
+}
+
+//空白を調整する
+func arrageWhiteSpace(str string) string {
+	return str
+}
+
+// /* */記号の削除
+func removeCommentSymbol(str string) string {
+	return str
 }

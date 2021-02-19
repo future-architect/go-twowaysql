@@ -49,7 +49,7 @@ func TestGen(t *testing.T) {
 					t.Error(err)
 				}
 				if got != tt.want {
-					t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
+					t.Errorf("Doesn't Match:\nexpected: \n%v\n but got: \n%v\n", tt.want, got)
 				}
 			}
 		})
@@ -58,13 +58,13 @@ func TestGen(t *testing.T) {
 
 func TestExperiment(t *testing.T) {
 	//input := makeIfElifElse()
-	input := makeNoComment()
+	input := makeTreeIf()
 
 	res, err := gen(input)
 	if err != nil {
 		t.Error(err)
 	}
-	t.Error(res)
+	t.Error("Res: ", res)
 }
 
 func sliceEqual(a, b []string) bool {
