@@ -9,14 +9,11 @@ import "bytes"
 // この設計は適切なのだろうか?
 // 右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree) (string, error) {
-	res, err := genInner(trees, "")
-	if err != nil {
-		return "", err
-	}
-	return arrageWhiteSpace(res), nil
+	res, err := genInner(trees)
+	return arrageWhiteSpace(res), err
 }
 
-func genInner(node *Tree, unsettled string) (string, error) {
+func genInner(node *Tree) (string, error) {
 	if node == nil {
 		return "", nil
 	}
@@ -24,7 +21,7 @@ func genInner(node *Tree, unsettled string) (string, error) {
 	//行きがけ
 
 	//左部分木に行く
-	leftStr, err := genInner(node.Left, unsettled)
+	leftStr, err := genInner(node.Left)
 	if err != nil {
 		return "", err
 	}
@@ -32,7 +29,7 @@ func genInner(node *Tree, unsettled string) (string, error) {
 	// 戻ってきた
 
 	//右部分木に行く
-	rightStr, err := genInner(node.Right, unsettled)
+	rightStr, err := genInner(node.Right)
 	if err != nil {
 		return "", err
 	}
