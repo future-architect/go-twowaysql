@@ -3,11 +3,9 @@ package twowaysql
 import "bytes"
 
 // 抽象構文木から目標文字列を生成
-// 欲しいサブ関数: 空白調整、if,elifの評価、
 // バインド抽出は別のパスにする
 // 左部分木、右部分木と辿る
-// この設計は適切なのだろうか?
-// 右部分木を持つのはif, elif, elseだけ?
+// 現状右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree) (string, error) {
 	res, err := genInner(trees)
 	return arrageWhiteSpace(res), err
@@ -62,8 +60,8 @@ func evalCondition(str string) bool {
 	return true
 }
 
-// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできないる
-// 単純な空白を想定。 -> issue よりロバストな実装
+// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
+// 単純な空白を想定。 -> issue: よりロバストな実装
 func arrageWhiteSpace(str string) string {
 	ret := ""
 	buff := bytes.NewBufferString(ret)
