@@ -38,7 +38,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if nest",
 			input: makeIfNest(),
-			want:  "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND id=3",
+			want:  "SELECT * FROM person WHERE employee_no < 1000 AND id=3",
 		},
 	}
 

@@ -3,6 +3,7 @@ package twowaysql
 import (
 	"bytes"
 	"strings"
+	"unicode"
 )
 
 // 抽象構文木から目標文字列を生成
@@ -55,12 +56,23 @@ func genInner(node *Tree) (string, error) {
 
 // /*value*/1000 -> ?/*value*/ みたいに変換する
 func bindConvert(str string) string {
+	str = strings.TrimRightFunc(str, func(r rune) bool {
+		return r != unicode.SimpleFold('/')
+	})
+	str = "?" + str
 	return str
 }
 
 // /* If ... */ /* Elif ... */の条件を評価する
+// 取り敢えずgenの動作を見るための仮実装
+// TODO: 識言語?に対応する
+// if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
+// 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
 func evalCondition(str string) bool {
-	return true
+	if strings.Contains(str, "true") {
+		return true
+	}
+	return false
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
@@ -75,7 +87,10 @@ func arrageWhiteSpace(str string) string {
 			buff.WriteByte(str[i])
 		}
 	}
-	return buff.String()
+	ret = buff.String()
+	ret = strings.TrimLeft(ret, " ")
+	ret = strings.TrimRight(ret, " ")
+	return ret
 }
 
 // /* */記号の削除
