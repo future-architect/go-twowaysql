@@ -65,7 +65,7 @@ func bindConvert(str string) string {
 
 // /* If ... */ /* Elif ... */の条件を評価する
 // 取り敢えずgenの動作を見るための仮実装
-// TODO: 識言語?に対応する
+// TODO: 式言語?に対応する
 // if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
 // 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
 func evalCondition(str string) bool {

@@ -204,7 +204,7 @@ func TestAst(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := ast(tt.input); err != nil || !treeEqual(tt.want, got) {
 				if err != nil {
-					t.Error(err)
+					t.Log(err)
 				}
 				t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.want, got)
 				fmt.Println("want:")

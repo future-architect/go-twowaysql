@@ -55,28 +55,3 @@ func TestGen(t *testing.T) {
 		})
 	}
 }
-
-func TestExperiment(t *testing.T) {
-	//input := makeIfElifElse()
-	input := makeTreeIf()
-
-	res, err := gen(input)
-	if err != nil {
-		t.Error(err)
-	}
-	t.Error("Res: ", res)
-}
-
-func sliceEqual(a, b []string) bool {
-	if len(a) != len(b) {
-		return false
-	}
-
-	for i, v := range a {
-		if v != b[i] {
-			return false
-		}
-	}
-
-	return true
-}
