@@ -13,7 +13,11 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "empty",
 			input: "",
-			want:  []Token{},
+			want: []Token{
+				{
+					kind: TkEndOfProgram,
+				},
+			},
 		},
 		{
 			name:  "no comment",
@@ -22,6 +26,9 @@ func TestTokenize(t *testing.T) {
 				{
 					kind: TkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
+				},
+				{
+					kind: TkEndOfProgram,
 				},
 			},
 		},
@@ -44,6 +51,9 @@ func TestTokenize(t *testing.T) {
 				{
 					kind: TkEnd,
 					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
 				},
 			},
 		},
@@ -83,6 +93,9 @@ func TestTokenize(t *testing.T) {
 					kind: TkEnd,
 					str:  "/* END */",
 				},
+				{
+					kind: TkEndOfProgram,
+				},
 			},
 		},
 		{
@@ -120,6 +133,66 @@ func TestTokenize(t *testing.T) {
 				{
 					kind: TkEnd,
 					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "if nest",
+			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* END */ /* ELSE*/ AND boss_id=4 /* END */",
+			want: []Token{
+				{
+					kind: TkSQLStmt,
+					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF true */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkIf,
+					str:  "/* IF false */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND dept_no =1 ",
+				},
+				{
+					kind: TkElse,
+					str:  "/* ELSE */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND id=3 ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: TkElse,
+					str:  "/* ELSE*/",
+				},
+				{
+					kind: TkSQLStmt,
+					str:  " AND boss_id=4 ",
+				},
+				{
+					kind: TkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: TkEndOfProgram,
 				},
 			},
 		},

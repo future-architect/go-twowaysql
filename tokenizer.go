@@ -9,8 +9,9 @@ const (
 	TkIf
 	TkElif
 	TkElse
-	TkBind
 	TkEnd
+	TkBind
+	TkEndOfProgram
 )
 
 type Token struct {
@@ -85,5 +86,10 @@ func tokinize(str string) ([]Token, error) {
 		}
 		index++
 	}
+
+	//処理しやすいように終点Tokenを付与する
+	tokens = append(tokens, Token{
+		kind: TkEndOfProgram,
+	})
 	return tokens, nil
 }
