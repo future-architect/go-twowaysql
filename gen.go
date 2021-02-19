@@ -9,14 +9,14 @@ import "bytes"
 // この設計は適切なのだろうか?
 // 右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree) (string, error) {
-	res, err := genInner(trees, "", false)
+	res, err := genInner(trees, "")
 	if err != nil {
 		return "", err
 	}
 	return arrageWhiteSpace(res), nil
 }
 
-func genInner(node *Tree, unsettled string, skip bool) (string, error) {
+func genInner(node *Tree, unsettled string) (string, error) {
 	if node == nil {
 		return "", nil
 	}
@@ -24,7 +24,7 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 	//行きがけ
 
 	//左部分木に行く
-	leftStr, err := genInner(node.Left, unsettled, skip)
+	leftStr, err := genInner(node.Left, unsettled)
 	if err != nil {
 		return "", err
 	}
@@ -32,7 +32,7 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 	// 戻ってきた
 
 	//右部分木に行く
-	rightStr, err := genInner(node.Right, unsettled, skip)
+	rightStr, err := genInner(node.Right, unsettled)
 	if err != nil {
 		return "", err
 	}
@@ -53,13 +53,6 @@ func genInner(node *Tree, unsettled string, skip bool) (string, error) {
 	default:
 		return leftStr, nil
 	}
-}
-
-func appendIfNotSkip(s1, s2 string, skip bool) string {
-	if !skip {
-		return s1 + s2
-	}
-	return s1
 }
 
 // /*value*/1000 -> ?/*value*/ みたいに変換する
