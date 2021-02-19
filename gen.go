@@ -1,6 +1,9 @@
 package twowaysql
 
-import "bytes"
+import (
+	"bytes"
+	"strings"
+)
 
 // 抽象構文木から目標文字列を生成
 // バインド抽出は別のパスにする
@@ -77,5 +80,7 @@ func arrageWhiteSpace(str string) string {
 
 // /* */記号の削除
 func removeCommentSymbol(str string) string {
+	str = strings.TrimPrefix(str, "/*")
+	str = strings.TrimSuffix(str, "*/")
 	return str
 }
