@@ -59,7 +59,7 @@ func TestTokenize(t *testing.T) {
 		},
 		{
 			name:  "if and bind",
-			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF exists(deptNo)*/ AND dept_no = /*deptNo*/1 /* END */",
+			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/1 /* END */",
 			want: []Token{
 				{
 					kind: TkSQLStmt,
@@ -75,7 +75,7 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind: TkIf,
-					str:  "/* IF exists(deptNo)*/",
+					str:  "/* IF false */",
 				},
 				{
 					kind: TkSQLStmt,

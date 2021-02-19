@@ -76,7 +76,7 @@ func TestAst(t *testing.T) {
 				},
 				{
 					kind: TkIf,
-					str:  "/* IF exists(deptNo)*/",
+					str:  "/* IF false */",
 				},
 				{
 					kind: TkSQLStmt,
@@ -412,7 +412,7 @@ func makeTreeIfBind() *Tree {
 		Right: &NdEnd1,
 		Token: &Token{
 			kind: TkIf,
-			str:  "/* IF exists(deptNo)*/",
+			str:  "/* IF false */",
 		},
 	}
 	NdSQLStmt2 := Tree{
