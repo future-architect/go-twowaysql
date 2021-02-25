@@ -12,7 +12,10 @@ import (
 // 現状右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree) (string, error) {
 	res, err := genInner(trees)
-	return arrageWhiteSpace(res), err
+	if err != nil {
+		return "", err
+	}
+	return arrageWhiteSpace(res), nil
 }
 
 func genInner(node *Tree) (string, error) {
@@ -69,10 +72,7 @@ func bindConvert(str string) string {
 // if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
 // 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
 func evalCondition(str string) bool {
-	if strings.Contains(str, "true") {
-		return true
-	}
-	return false
+	return strings.Contains(str, "true")
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない

@@ -26,10 +26,6 @@ func (t twowaysql) convert(query string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	convertedStr, err := gen(tree)
-	if err != nil {
-		return "", err
-	}
 
-	return convertedStr, nil
+	return gen(tree)
 }
