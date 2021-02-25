@@ -8,12 +8,6 @@ import (
 	_ "github.com/lib/pq"
 )
 
-type Person struct {
-	FirstName string `twowaysql: "first_name"`
-	LastName  string `twowaysql: "last_name"`
-	Email     string `twowaysql: "email"`
-}
-
 func TestE2E(t *testing.T) {
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
 	db, err := sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
@@ -28,7 +22,7 @@ func TestE2E(t *testing.T) {
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
 	// 式言語に対応していないためif trueとしている
-	err = Select(&people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1'`, params).Run(db, ctx)
+	err = Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1' /* END */`, params).Run(db, ctx)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}
@@ -41,7 +35,7 @@ func TestE2E(t *testing.T) {
 		},
 		{
 			FirstName: "Malvina",
-			LastName:  "FitzSimon",
+			LastName:  "FitzSimons",
 			Email:     "malvinafitzsimons@example.com",
 		},
 	}

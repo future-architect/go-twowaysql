@@ -10,15 +10,15 @@ import (
 // バインド抽出は別のパスにする
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
-func gen(trees *Tree) (string, error) {
-	res, err := genInner(trees)
+func gen(trees *Tree, params map[string]interface{}) (string, error) {
+	res, err := genInner(trees, params)
 	if err != nil {
 		return "", err
 	}
 	return arrageWhiteSpace(res), nil
 }
 
-func genInner(node *Tree) (string, error) {
+func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	if node == nil {
 		return "", nil
 	}
@@ -26,7 +26,7 @@ func genInner(node *Tree) (string, error) {
 	//行きがけ
 
 	//左部分木に行く
-	leftStr, err := genInner(node.Left)
+	leftStr, err := genInner(node.Left, params)
 	if err != nil {
 		return "", err
 	}
@@ -34,7 +34,7 @@ func genInner(node *Tree) (string, error) {
 	// 戻ってきた
 
 	//右部分木に行く
-	rightStr, err := genInner(node.Right)
+	rightStr, err := genInner(node.Right, params)
 	if err != nil {
 		return "", err
 	}
@@ -48,7 +48,7 @@ func genInner(node *Tree) (string, error) {
 	case NdBind:
 		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
-		if evalCondition(removeCommentSymbol(node.Token.str)) {
+		if evalCondition(removeCommentSymbol(node.Token.str), params) {
 			return leftStr, nil
 		}
 		return rightStr, nil
@@ -58,6 +58,7 @@ func genInner(node *Tree) (string, error) {
 }
 
 // /*value*/1000 -> ?/*value*/ みたいに変換する
+// ここではやらない
 func bindConvert(str string) string {
 	str = strings.TrimRightFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
@@ -71,7 +72,7 @@ func bindConvert(str string) string {
 // TODO: 式言語?に対応する
 // if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
 // 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
-func evalCondition(str string) bool {
+func evalCondition(str string, params map[string]interface{}) bool {
 	return strings.Contains(str, "true")
 }
 

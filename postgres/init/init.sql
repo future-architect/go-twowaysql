@@ -8,6 +8,6 @@ CREATE TABLE persons (
 
 INSERT INTO persons(employee_no, dept_no, first_name, last_name, email) VALUES
 			(1, 10, 'Evan', 'MacMans', 'evanmacmans@example.com'),
-			(2, 11, 'Malvina', 'FitzSimons', 'malvinafitzsimons@examp.com'),
-			(3, 12, 'Jimmie', 'Bruce', 'jimmiebruce@examp.com')
+			(2, 11, 'Malvina', 'FitzSimons', 'malvinafitzsimons@example.com'),
+			(3, 12, 'Jimmie', 'Bruce', 'jimmiebruce@example.com')
 			;

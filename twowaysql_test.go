@@ -62,8 +62,8 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New().WithParams(map[string]interface{}{})
-			if got, err := tw.convert(tt.input); err != nil || got != tt.want {
+			tw := New().withQuery(tt.input)
+			if got, err := tw.convert(); err != nil || got != tt.want {
 				if err != nil {
 					t.Log(err)
 				}
