@@ -1,5 +1,10 @@
 package twowaysql
 
+import (
+	"context"
+	"database/sql"
+)
+
 type twowaysql struct {
 	params map[string]interface{}
 }
@@ -16,6 +21,10 @@ func (t twowaysql) WithParams(params map[string]interface{}) twowaysql {
 	}
 }
 
+func (t twowaysql) Run(*sql.DB, context.Context) error {
+	return nil
+}
+
 //内部でバインドパラメータのデータを持っている必要があるかも
 func (t twowaysql) convert(query string) (string, error) {
 	tokens, err := tokinize(query)
@@ -28,4 +37,8 @@ func (t twowaysql) convert(query string) (string, error) {
 	}
 
 	return gen(tree)
+}
+
+func Select(ar interface{}, query string, params map[string]interface{}) twowaysql {
+	return New()
 }

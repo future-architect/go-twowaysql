@@ -51,9 +51,9 @@ func TestE2E(t *testing.T) {
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
 	// 式言語に対応していないためif trueとしている
-	err = Select(&people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1'`).Run(db, ctx, params)
+	err = Select(&people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1'`, params).Run(db, ctx)
 	if err != nil {
-		t.Errorf("select: failed: &v", err)
+		t.Errorf("select: failed: %v", err)
 	}
 
 	expected := []Person{
@@ -70,7 +70,7 @@ func TestE2E(t *testing.T) {
 	}
 
 	if !match(people, expected) {
-		t.Errorf("expected:\n%v\nbut got\n%v\n", people, expected)
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
 	}
 }
 
