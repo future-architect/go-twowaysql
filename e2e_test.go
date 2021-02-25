@@ -15,37 +15,14 @@ type Person struct {
 }
 
 func TestE2E(t *testing.T) {
-	db, err := sql.Open("postgres", "user=foo dbname=bar sslmode=disable")
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	db, err := sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	defer db.Close()
 	if err != nil {
 		t.Error(err)
 	}
 
 	ctx := context.Background()
-
-	cmd := `CREATE TABLE IF NOT EXISTS persons(
-		employee_no INT,
-		dept_no INT,
-		first_name STRING,
-		last_name STRING,
-		email STRING,
-		PRIMARY KEY (employee_no)
-		)`
-
-	_, err = db.ExecContext(ctx, cmd)
-	if err != nil {
-		t.Error(err)
-	}
-
-	cmd = `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES
-			(1, 10, 'Evan', 'MacMans', 'evanmacmans@example.com'),
-			(2, 11, 'Malvina', 'FitzSimons', 'malvinafitzsimons@examp.com')
-			(3, 12, 'Jimmie', 'Bruce', 'jimmiebruce@examp.com')
-			`
-	_, err = db.ExecContext(ctx, cmd)
-	if err != nil {
-		t.Error(err)
-	}
 
 	var people []Person
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
