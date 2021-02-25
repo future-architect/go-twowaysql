@@ -22,7 +22,7 @@ type twowaysql struct {
 	inputStructs *[]Person
 }
 
-func New() *twowaysql {
+func new() *twowaysql {
 	return &twowaysql{}
 }
 
@@ -70,6 +70,7 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 		}
 	}
 
+	//一時的な措置、本当はどこかでdatabaseのtypeを知る必要がある。
 	postgres := true
 	if postgres {
 		convertedQuery = convertPlaceHolder(convertedQuery)
@@ -78,7 +79,6 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 	//log.Println("query", convertedQuery)
 	//log.Println(params...)
 	rows, err := db.QueryContext(ctx, convertedQuery, params...)
-	//rows, err := db.QueryContext(ctx, convertedQuery, 3)
 	if err != nil {
 		log.Println("ERROR")
 		return err
@@ -107,7 +107,6 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 	return nil
 }
 
-//内部でバインドパラメータのデータを持っている必要があるかも
 func (t *twowaysql) convert() (string, error) {
 	tokens, err := tokinize(t.query)
 	if err != nil {
@@ -123,7 +122,7 @@ func (t *twowaysql) convert() (string, error) {
 
 // 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func Select(inputStructs *[]Person, query string, params map[string]interface{}) *twowaysql {
-	t := New().withParams(params).withQuery(query).withInputStruct(inputStructs)
+	t := new().withParams(params).withQuery(query).withInputStruct(inputStructs)
 	return t
 }
 
@@ -145,6 +144,7 @@ func retrieveBinds(query string) ([]string, error) {
 }
 
 // ?/* value */ からvalueを取り出す
+// 事前条件: strは?/* ... */という形である
 func retrieveBind(str string) string {
 	var retStr string
 	retStr = strings.Trim(str, " ")
@@ -154,6 +154,7 @@ func retrieveBind(str string) string {
 	return strings.Trim(retStr, " ")
 }
 
+// ?/* ... */ を $1/* ... */のような形に変換する。
 func convertPlaceHolder(str string) string {
 	count := strings.Count(str, "?")
 	log.Println("count", count)

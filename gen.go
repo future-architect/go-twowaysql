@@ -58,7 +58,6 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 }
 
 // /*value*/1000 -> ?/*value*/ みたいに変換する
-// ここではやらない
 func bindConvert(str string) string {
 	str = strings.TrimRightFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
