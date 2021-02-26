@@ -72,3 +72,26 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+
+func TestParseAbnormal(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "no END",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tw := New(nil).withQuery(tt.input)
+			if _, err := tw.parse(); err == nil {
+				t.Errorf("should return error")
+			} else {
+				t.Log(err)
+			}
+		})
+	}
+}

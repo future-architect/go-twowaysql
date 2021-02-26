@@ -43,10 +43,8 @@ func ast(tokens []Token) (*Tree, error) {
 
 func program(tokens []Token) (*Tree, error) {
 	index := 0
-	var node *Tree
-	var err error
 
-	node, err = stmt(tokens, &index)
+	node, err := stmt(tokens, &index)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +83,10 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 	} else if consume(tokens, index, TkEndOfProgram) {
 		// EndOfProgram
 		node = &Tree{
-			Kind:  NodeKind(TkEndOfProgram),
-			Token: &tokens[*index-1],
+			Kind: NodeKind(TkEndOfProgram),
+			// consumeはTkEndOfProgramの時はインクリメントしないから1を引かない
+			// かなりよくない設計
+			Token: &tokens[*index],
 		}
 		return node, nil
 	} else if consume(tokens, index, TkIf) {
@@ -157,8 +157,13 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 
 //tokenが所望のものか調べる。一致していればインデックスを一つ進める
 func consume(tokens []Token, index *int, kind TokenKind) bool {
+	//println("str: ", tokens[*index].str, "kind: ", tokens[*index].kind, "want kind: ", kind)
 	if tokens[*index].kind == kind {
-		*index++
+		// TkEndOfPraogramでインクリメントしてしまうと
+		// その後のconsume呼び出しでIndex Out Of Bounds例外が発生してしまう
+		if kind != TkEndOfProgram {
+			*index++
+		}
 		return true
 	}
 	return false
