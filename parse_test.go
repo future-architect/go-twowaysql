@@ -82,12 +82,17 @@ func TestParseAbnormal(t *testing.T) {
 			name:  "no END",
 			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
 		},
+		{
+			name:  "extra END",
+			input: "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1 /* END */",
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tw := New(nil).withQuery(tt.input)
-			if _, err := tw.parse(); err == nil {
+			if got, err := tw.parse(); err == nil {
+				t.Log("got", got)
 				t.Errorf("should return error")
 			} else {
 				t.Log(err)
