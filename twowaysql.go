@@ -51,7 +51,7 @@ func (t *twowaysql) withInputStruct(inputStructs *[]Person) *twowaysql {
 }
 
 func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
-	convertedQuery, err := t.convert()
+	convertedQuery, err := t.parse()
 	if err != nil {
 		return err
 	}
@@ -80,7 +80,6 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 	//log.Println(params...)
 	rows, err := db.QueryContext(ctx, convertedQuery, params...)
 	if err != nil {
-		log.Println("ERROR")
 		return err
 	}
 	defer rows.Close()
@@ -100,14 +99,11 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 	if rerr != nil {
 		return rerr
 	}
-	if err := rows.Err(); err != nil {
-		return err
-	}
 
-	return nil
+	return rows.Err()
 }
 
-func (t *twowaysql) convert() (string, error) {
+func (t *twowaysql) parse() (string, error) {
 	tokens, err := tokinize(t.query)
 	if err != nil {
 		return "", err
