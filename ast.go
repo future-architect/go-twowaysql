@@ -37,7 +37,7 @@ func ast(tokens []Token) (*Tree, error) {
 	if err != nil {
 		return nil, err
 	}
-	if nodeCount(node) != len(tokens) {
+	if node.nodeCount() != len(tokens) {
 		//log.Println("node", nodeCount(node), "tokens", len(tokens))
 		return nil, errors.New("can not generate abstract syntax tree")
 	}
@@ -173,17 +173,23 @@ func consume(tokens []Token, index *int, kind TokenKind) bool {
 	return false
 }
 
-func nodeCount(tree *Tree) int {
+func (t *Tree) nodeCount() int {
 	count := 1
-	countInner(tree.Left, &count)
-	countInner(tree.Right, &count)
+	if t.Left != nil {
+		t.Left.countInner(&count)
+	}
+	if t.Right != nil {
+		t.Right.countInner(&count)
+	}
 	return count
 }
 
-func countInner(tree *Tree, count *int) {
-	if tree != nil {
-		*count++
-		countInner(tree.Left, count)
-		countInner(tree.Right, count)
+func (t *Tree) countInner(count *int) {
+	*count++
+	if t.Left != nil {
+		t.Left.countInner(count)
+	}
+	if t.Right != nil {
+		t.Right.countInner(count)
 	}
 }
