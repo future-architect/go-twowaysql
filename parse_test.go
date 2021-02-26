@@ -130,37 +130,47 @@ func TestCondition(t *testing.T) {
 
 func TestParseAbnormal(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name      string
+		input     string
+		wantError string
 	}{
 		{
-			name:  "no END",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
+			name:      "no END",
+			input:     `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
+			wantError: "can not parse: expected /* END */, but got 7",
 		},
 		{
-			name:  "extra END 1",
-			input: "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1 /* END */",
+			name:      "extra END 1",
+			input:     "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1 /* END */",
+			wantError: "can not generate abstract syntax tree",
 		},
 		{
-			name:  "extra END 2",
-			input: "SELECT * FROM person WHERE employee_no < 1000  /* END */ AND dept_no = 1 ",
+			name:      "extra END 2",
+			input:     "SELECT * FROM person WHERE employee_no < 1000  /* END */ AND dept_no = 1 ",
+			wantError: "can not generate abstract syntax tree",
 		},
 		{
-			name:  "invalid Elif pos",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* ELIF true */ AND dept_no = 1`,
+			name:      "invalid Elif pos",
+			input:     `SELECT * FROM person WHERE employee_no < 1000 /* ELIF true */ AND dept_no = 1`,
+			wantError: "can not generate abstract syntax tree",
 		},
 		{
-			name:  "not match if, elif and end",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* ELSE*/ AND boss_id=4 /* END */`,
+			name:      "not match if, elif and end",
+			input:     `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* ELSE*/ AND boss_id=4 /* END */`,
+			wantError: "can not parse: expected /* END */, but got 4",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tw := New(nil).withQuery(tt.input)
-			if got, err := tw.parse(); err == nil {
-				t.Log("got", got)
-				t.Errorf("should return error")
+			if got, err := tw.parse(); err == nil || err.Error() != tt.wantError {
+				if err == nil {
+					t.Log("got", got)
+					t.Errorf("should return error")
+				} else {
+					t.Errorf("\nexpected:\n%v\nbut got\n%v\n", tt.wantError, err.Error())
+				}
 			} else {
 				t.Log(err)
 			}
