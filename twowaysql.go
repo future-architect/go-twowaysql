@@ -29,6 +29,7 @@ func New(db *sql.DB) *Twowaysql {
 	}
 }
 
+// ConvertedQuery returns convertedQuery property
 func (t *Twowaysql) ConvertedQuery() string {
 	return t.convertedQuery
 }

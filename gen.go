@@ -48,7 +48,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	case NdBind:
 		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
-		if evalCondition(removeCommentSymbol(node.Token.str), params) {
+		if evalCondition(removeCommentSymbol(node.Token.str), params, kind) {
 			return leftStr, nil
 		}
 		return rightStr, nil
@@ -71,8 +71,38 @@ func bindConvert(str string) string {
 // TODO: 式言語?に対応する
 // if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
 // 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
-func evalCondition(str string, params map[string]interface{}) bool {
+// kindはNdIfかNdElifでなくてはならない
+func evalCondition(str string, params map[string]interface{}, kind NodeKind) bool {
+	/*
+		var val string
+		switch kind {
+		case NdIf:
+			val = retrieveValueFromIf(str)
+		case NdElif:
+			val = retrieveValueFromElif(str)
+		default:
+			panic("kind must be NdIf or NdElif")
+		}
+	*/
 	return strings.Contains(str, "true")
+}
+
+func retrieveValueFromIf(str string) string {
+	str = strings.TrimPrefix(str, "/*")
+	str = strings.TrimSuffix(str, "*/")
+	str = strings.Trim(str, " ")
+	str = strings.TrimPrefix(str, "IF")
+	str = strings.TrimLeft(str, " ")
+	return str
+}
+
+func retrieveValueFromElif(str string) string {
+	str = strings.TrimPrefix(str, "/*")
+	str = strings.TrimSuffix(str, "*/")
+	str = strings.Trim(str, " ")
+	str = strings.TrimPrefix(str, "ELIF")
+	str = strings.TrimLeft(str, " ")
+	return str
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない

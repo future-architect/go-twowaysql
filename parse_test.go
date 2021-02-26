@@ -72,6 +72,61 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+func TestCondition(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  string
+	}{
+		{
+			name:  "if true",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF checked */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if false",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF uncheckd */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if truthy 1",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if truthy 2",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if truthy 3",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if falsy 1",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF zero */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if falsy 2",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF nil */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+	}
+	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tw := New(nil).withQuery(tt.input).withParams(params)
+			if got, err := tw.parse(); err != nil || got != tt.want {
+				if err != nil {
+					t.Log(err)
+				}
+				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got)
+			}
+		})
+	}
+}
 
 func TestParseAbnormal(t *testing.T) {
 	tests := []struct {
