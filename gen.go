@@ -2,6 +2,8 @@ package twowaysql
 
 import (
 	"bytes"
+	"fmt"
+	"reflect"
 	"strings"
 	"unicode"
 )
@@ -48,7 +50,11 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	case NdBind:
 		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
-		if evalCondition(removeCommentSymbol(node.Token.str), params, kind) {
+		truth, err := evalCondition(removeCommentSymbol(node.Token.str), params, kind)
+		if err != nil {
+			return "", err
+		}
+		if truth {
 			return leftStr, nil
 		}
 		return rightStr, nil
@@ -67,24 +73,72 @@ func bindConvert(str string) string {
 }
 
 // /* If ... */ /* Elif ... */の条件を評価する
-// 取り敢えずgenの動作を見るための仮実装
 // TODO: 式言語?に対応する
-// if exsits(deptNo)などはdepthNoにアクセスできなくてはならない。
-// 将来的には構造体を作る必要がある。tokenize, ast, genはそのメソッドとなる。
-// kindはNdIfかNdElifでなくてはならない
-func evalCondition(str string, params map[string]interface{}, kind NodeKind) bool {
-	/*
-		var val string
-		switch kind {
-		case NdIf:
-			val = retrieveValueFromIf(str)
-		case NdElif:
-			val = retrieveValueFromElif(str)
-		default:
-			panic("kind must be NdIf or NdElif")
+// kindはNdIfかNdElifでなくてはならない(呼び出し側の制約)
+// 現状は/* If condition */のconditionがtruthyかどうか判別している。
+// notに対応した方がいいだろうか?
+func evalCondition(str string, params map[string]interface{}, kind NodeKind) (bool, error) {
+	//テスト用
+	if strings.Contains(str, "true") {
+		return true, nil
+	}
+	if strings.Contains(str, "false") {
+		return false, nil
+	}
+	var val string
+	switch kind {
+	case NdIf:
+		val = retrieveValueFromIf(str)
+	case NdElif:
+		val = retrieveValueFromElif(str)
+	default:
+		panic("kind must be NdIf or NdElif")
+	}
+	//log.Println("val:", val)
+	if elem, ok := params[val]; ok {
+		if truth, ok := isTrue(elem); ok {
+			return truth, nil
 		}
-	*/
-	return strings.Contains(str, "true")
+		return false, fmt.Errorf("IF/ELIF can not use %v", elem)
+	}
+	return false, fmt.Errorf("invalid condition %v", val)
+	//return strings.Contains(str, "true")
+}
+
+// IsTrue reports whether the value is 'true', in the sense of not the zero of its type,
+// and whether the value has a meaningful truth value. This is the definition of
+// truth used by if and other such actions.
+// text/templateのexec.goから拝借(いいのか?)
+func isTrue(val interface{}) (truth, ok bool) {
+	return isTrueInner(reflect.ValueOf(val))
+}
+
+func isTrueInner(val reflect.Value) (truth, ok bool) {
+	if !val.IsValid() {
+		// Something like var x interface{}, never set. It's a form of nil.
+		return false, true
+	}
+	switch val.Kind() {
+	case reflect.Array, reflect.Map, reflect.Slice, reflect.String:
+		truth = val.Len() > 0
+	case reflect.Bool:
+		truth = val.Bool()
+	case reflect.Complex64, reflect.Complex128:
+		truth = val.Complex() != 0
+	case reflect.Chan, reflect.Func, reflect.Ptr, reflect.Interface:
+		truth = !val.IsNil()
+	case reflect.Int, reflect.Int8, reflect.Int16, reflect.Int32, reflect.Int64:
+		truth = val.Int() != 0
+	case reflect.Float32, reflect.Float64:
+		truth = val.Float() != 0
+	case reflect.Uint, reflect.Uint8, reflect.Uint16, reflect.Uint32, reflect.Uint64, reflect.Uintptr:
+		truth = val.Uint() != 0
+	case reflect.Struct:
+		truth = true // Struct values are always true.
+	default:
+		return
+	}
+	return truth, true
 }
 
 func retrieveValueFromIf(str string) string {
