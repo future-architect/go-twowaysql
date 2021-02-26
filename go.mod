@@ -1,3 +1,5 @@
 module gitlab.com/osaki-lab/twowaysql
 
-go 1.14
+go 1.16
+
+require github.com/lib/pq v1.9.0

@@ -31,6 +31,7 @@ type Tree struct {
 //		  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt |
 //			EndOfProgram
 //
+// 要対応: ENDがないとランタイムエラー、tokenizeでチェックするか?
 func ast(tokens []Token) (*Tree, error) {
 	node, err := program(tokens)
 	if err != nil {
