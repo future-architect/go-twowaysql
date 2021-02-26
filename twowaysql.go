@@ -16,10 +16,11 @@ type Person struct {
 
 // inputStructは本来structだが現時点ではpeople決め打ちで書く
 type Twowaysql struct {
-	db           *sql.DB
-	query        string
-	params       map[string]interface{}
-	inputStructs *[]Person
+	db             *sql.DB
+	query          string
+	convertedQuery string
+	params         map[string]interface{}
+	inputStructs   *[]Person
 }
 
 func New(db *sql.DB) *Twowaysql {
@@ -28,30 +29,37 @@ func New(db *sql.DB) *Twowaysql {
 	}
 }
 
+func (t *Twowaysql) ConvertedQuery() string {
+	return t.convertedQuery
+}
+
 func (t *Twowaysql) withQuery(query string) *Twowaysql {
 	return &Twowaysql{
-		db:           t.db,
-		query:        query,
-		params:       t.params,
-		inputStructs: t.inputStructs,
+		db:             t.db,
+		query:          query,
+		convertedQuery: t.convertedQuery,
+		params:         t.params,
+		inputStructs:   t.inputStructs,
 	}
 }
 
 func (t *Twowaysql) withParams(params map[string]interface{}) *Twowaysql {
 	return &Twowaysql{
-		db:           t.db,
-		query:        t.query,
-		params:       params,
-		inputStructs: t.inputStructs,
+		db:             t.db,
+		query:          t.query,
+		convertedQuery: t.convertedQuery,
+		params:         params,
+		inputStructs:   t.inputStructs,
 	}
 }
 
 func (t *Twowaysql) withInputStruct(inputStructs *[]Person) *Twowaysql {
 	return &Twowaysql{
-		db:           t.db,
-		query:        t.query,
-		params:       t.params,
-		inputStructs: inputStructs,
+		db:             t.db,
+		query:          t.query,
+		convertedQuery: t.convertedQuery,
+		params:         t.params,
+		inputStructs:   inputStructs,
 	}
 }
 
@@ -65,6 +73,7 @@ func (t *Twowaysql) Run(ctx context.Context) error {
 	if err != nil {
 		return err
 	}
+	t.convertedQuery = convertedQuery
 
 	binds, err := retrieveBinds(convertedQuery)
 	if err != nil {
@@ -111,19 +120,6 @@ func (t *Twowaysql) Run(ctx context.Context) error {
 	}
 
 	return rows.Err()
-}
-
-func (t *Twowaysql) parse() (string, error) {
-	tokens, err := tokinize(t.query)
-	if err != nil {
-		return "", err
-	}
-	tree, err := ast(tokens)
-	if err != nil {
-		return "", err
-	}
-
-	return gen(tree, t.params)
 }
 
 // ?/*...*/を抽出する

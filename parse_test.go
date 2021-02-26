@@ -72,3 +72,43 @@ func TestParse(t *testing.T) {
 		})
 	}
 }
+
+func TestParseAbnormal(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+	}{
+		{
+			name:  "no END",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
+		},
+		{
+			name:  "extra END 1",
+			input: "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1 /* END */",
+		},
+		{
+			name:  "extra END 2",
+			input: "SELECT * FROM person WHERE employee_no < 1000  /* END */ AND dept_no = 1 ",
+		},
+		{
+			name:  "invalid Elif pos",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* ELIF true */ AND dept_no = 1`,
+		},
+		{
+			name:  "not match if, elif and end",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* ELSE*/ AND boss_id=4 /* END */`,
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tw := New(nil).withQuery(tt.input)
+			if got, err := tw.parse(); err == nil {
+				t.Log("got", got)
+				t.Errorf("should return error")
+			} else {
+				t.Log(err)
+			}
+		})
+	}
+}

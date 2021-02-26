@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func TestE2E(t *testing.T) {
+func TestSelect(t *testing.T) {
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
 	db, err := sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	defer db.Close()
