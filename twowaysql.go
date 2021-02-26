@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"log"
 	"strconv"
 	"strings"
 )
@@ -16,41 +15,52 @@ type Person struct {
 }
 
 // inputStructは本来structだが現時点ではpeople決め打ちで書く
-type twowaysql struct {
+type Twowaysql struct {
+	db           *sql.DB
 	query        string
 	params       map[string]interface{}
 	inputStructs *[]Person
 }
 
-func new() *twowaysql {
-	return &twowaysql{}
+func New(db *sql.DB) *Twowaysql {
+	return &Twowaysql{
+		db: db,
+	}
 }
 
-func (t *twowaysql) withQuery(query string) *twowaysql {
-	return &twowaysql{
+func (t *Twowaysql) withQuery(query string) *Twowaysql {
+	return &Twowaysql{
+		db:           t.db,
 		query:        query,
 		params:       t.params,
 		inputStructs: t.inputStructs,
 	}
 }
 
-func (t *twowaysql) withParams(params map[string]interface{}) *twowaysql {
-	return &twowaysql{
+func (t *Twowaysql) withParams(params map[string]interface{}) *Twowaysql {
+	return &Twowaysql{
+		db:           t.db,
 		query:        t.query,
 		params:       params,
 		inputStructs: t.inputStructs,
 	}
 }
 
-func (t *twowaysql) withInputStruct(inputStructs *[]Person) *twowaysql {
-	return &twowaysql{
+func (t *Twowaysql) withInputStruct(inputStructs *[]Person) *Twowaysql {
+	return &Twowaysql{
+		db:           t.db,
 		query:        t.query,
 		params:       t.params,
 		inputStructs: inputStructs,
 	}
 }
 
-func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
+// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
+func (t *Twowaysql) Select(inputStructs *[]Person, query string, params map[string]interface{}) *Twowaysql {
+	return t.withParams(params).withQuery(query).withInputStruct(inputStructs)
+}
+
+func (t *Twowaysql) Run(ctx context.Context) error {
 	convertedQuery, err := t.parse()
 	if err != nil {
 		return err
@@ -78,7 +88,7 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 
 	//log.Println("query", convertedQuery)
 	//log.Println(params...)
-	rows, err := db.QueryContext(ctx, convertedQuery, params...)
+	rows, err := t.db.QueryContext(ctx, convertedQuery, params...)
 	if err != nil {
 		return err
 	}
@@ -103,7 +113,7 @@ func (t *twowaysql) Run(db *sql.DB, ctx context.Context) error {
 	return rows.Err()
 }
 
-func (t *twowaysql) parse() (string, error) {
+func (t *Twowaysql) parse() (string, error) {
 	tokens, err := tokinize(t.query)
 	if err != nil {
 		return "", err
@@ -114,12 +124,6 @@ func (t *twowaysql) parse() (string, error) {
 	}
 
 	return gen(tree, t.params)
-}
-
-// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
-func Select(inputStructs *[]Person, query string, params map[string]interface{}) *twowaysql {
-	t := new().withParams(params).withQuery(query).withInputStruct(inputStructs)
-	return t
 }
 
 // ?/*...*/を抽出する
@@ -153,7 +157,6 @@ func retrieveBind(str string) string {
 // ?/* ... */ を $1/* ... */のような形に変換する。
 func convertPlaceHolder(str string) string {
 	count := strings.Count(str, "?")
-	log.Println("count", count)
 	for i := 0; i < count; i++ {
 		str = strings.Replace(str, "?", "$"+strconv.Itoa(i+1), 1)
 	}

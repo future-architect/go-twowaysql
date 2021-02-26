@@ -16,13 +16,15 @@ func TestE2E(t *testing.T) {
 		t.Error(err)
 	}
 
+	tw := New(db)
+
 	ctx := context.Background()
 
 	var people []Person
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
 	// 式言語に対応していないためif trueとしている
-	err = Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1' /* END */`, params).Run(db, ctx)
+	err = tw.Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/'1' /* END */`, params).Run(ctx)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}

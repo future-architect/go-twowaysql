@@ -62,7 +62,7 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := new().withQuery(tt.input)
+			tw := New(nil).withQuery(tt.input)
 			if got, err := tw.parse(); err != nil || got != tt.want {
 				if err != nil {
 					t.Log(err)
