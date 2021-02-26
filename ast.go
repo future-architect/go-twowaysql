@@ -1,6 +1,7 @@
 package twowaysql
 
 import (
+	"errors"
 	"fmt"
 )
 
@@ -31,11 +32,14 @@ type Tree struct {
 //		  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt |
 //			EndOfProgram
 //
-// 要対応: ENDがないとランタイムエラー、tokenizeでチェックするか?
 func ast(tokens []Token) (*Tree, error) {
 	node, err := program(tokens)
 	if err != nil {
 		return nil, err
+	}
+	if nodeCount(node) != len(tokens) {
+		//log.Println("node", nodeCount(node), "tokens", len(tokens))
+		return nil, errors.New("can not generate abstract syntax tree")
 	}
 
 	return node, nil
@@ -43,10 +47,8 @@ func ast(tokens []Token) (*Tree, error) {
 
 func program(tokens []Token) (*Tree, error) {
 	index := 0
-	var node *Tree
-	var err error
 
-	node, err = stmt(tokens, &index)
+	node, err := stmt(tokens, &index)
 	if err != nil {
 		return nil, err
 	}
@@ -85,8 +87,10 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 	} else if consume(tokens, index, TkEndOfProgram) {
 		// EndOfProgram
 		node = &Tree{
-			Kind:  NodeKind(TkEndOfProgram),
-			Token: &tokens[*index-1],
+			Kind: NodeKind(TkEndOfProgram),
+			// consumeはTkEndOfProgramの時はインクリメントしないから1を引かない
+			// かなりよくない設計
+			Token: &tokens[*index],
 		}
 		return node, nil
 	} else if consume(tokens, index, TkIf) {
@@ -157,9 +161,29 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 
 //tokenが所望のものか調べる。一致していればインデックスを一つ進める
 func consume(tokens []Token, index *int, kind TokenKind) bool {
+	//println("str: ", tokens[*index].str, "kind: ", tokens[*index].kind, "want kind: ", kind)
 	if tokens[*index].kind == kind {
-		*index++
+		// TkEndOfPraogramでインクリメントしてしまうと
+		// その後のconsume呼び出しでIndex Out Of Bounds例外が発生してしまう
+		if kind != TkEndOfProgram {
+			*index++
+		}
 		return true
 	}
 	return false
+}
+
+func nodeCount(tree *Tree) int {
+	count := 1
+	countInner(tree.Left, &count)
+	countInner(tree.Right, &count)
+	return count
+}
+
+func countInner(tree *Tree, count *int) {
+	if tree != nil {
+		*count++
+		countInner(tree.Left, count)
+		countInner(tree.Right, count)
+	}
 }
