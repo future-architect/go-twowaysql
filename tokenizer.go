@@ -1,7 +1,6 @@
 package twowaysql
 
 import (
-	"bytes"
 	"errors"
 	"strings"
 	"unicode"
@@ -153,22 +152,4 @@ func removeCommentSymbol(str string) string {
 	str = strings.TrimPrefix(str, "/*")
 	str = strings.TrimSuffix(str, "*/")
 	return str
-}
-
-// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
-// 単純な空白を想定。 -> issue: よりロバストな実装
-func arrageWhiteSpace(str string) string {
-	ret := ""
-	buff := bytes.NewBufferString(ret)
-	for i := 0; i < len(str); i++ {
-		if i < len(str)-1 && str[i] == ' ' && str[i+1] == ' ' {
-			//do nothing
-		} else {
-			buff.WriteByte(str[i])
-		}
-	}
-	ret = buff.String()
-	ret = strings.TrimLeft(ret, " ")
-	ret = strings.TrimRight(ret, " ")
-	return ret
 }
