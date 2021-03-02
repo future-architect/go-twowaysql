@@ -1,27 +1,25 @@
 package twowaysql
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
-	"strings"
 )
 
 // 抽象構文木から目標文字列を生成
 // バインド抽出は別のパスにする
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
-func gen(trees *Tree, params map[string]interface{}) (string, error) {
+func gen(trees *Tree, params map[string]interface{}) ([]Token, error) {
 	res, err := genInner(trees, params)
 	if err != nil {
-		return "", err
+		return []Token{}, err
 	}
-	return arrageWhiteSpace(res), nil
+	return res, nil
 }
 
-func genInner(node *Tree, params map[string]interface{}) (string, error) {
+func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
 	if node == nil {
-		return "", nil
+		return []Token{}, nil
 	}
 
 	//行きがけ
@@ -29,7 +27,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	//左部分木に行く
 	leftStr, err := genInner(node.Left, params)
 	if err != nil {
-		return "", err
+		return []Token{}, err
 	}
 
 	//左部分木から戻ってきた
@@ -37,7 +35,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	//右部分木に行く
 	rightStr, err := genInner(node.Right, params)
 	if err != nil {
-		return "", err
+		return []Token{}, err
 	}
 
 	//右部分木から戻ってきた
@@ -46,11 +44,12 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	// If Elifの場合は条件次第
 	switch kind := node.Kind; kind {
 	case NdSQLStmt, NdBind:
-		return node.Token.str + leftStr, nil
+		//めちゃめちゃ実行効率悪い気が...
+		return append([]Token{*node.Token}, leftStr...), nil
 	case NdIf, NdElif:
 		truth, err := evalCondition(node.Token.condition, params)
 		if err != nil {
-			return "", err
+			return []Token{}, err
 		}
 		if truth {
 			return leftStr, nil
@@ -119,22 +118,4 @@ func isTrueInner(val reflect.Value) (truth, ok bool) {
 		return
 	}
 	return truth, true
-}
-
-// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
-// 単純な空白を想定。 -> issue: よりロバストな実装
-func arrageWhiteSpace(str string) string {
-	ret := ""
-	buff := bytes.NewBufferString(ret)
-	for i := 0; i < len(str); i++ {
-		if i < len(str)-1 && str[i] == ' ' && str[i+1] == ' ' {
-			//do nothing
-		} else {
-			buff.WriteByte(str[i])
-		}
-	}
-	ret = buff.String()
-	ret = strings.TrimLeft(ret, " ")
-	ret = strings.TrimRight(ret, " ")
-	return ret
 }
