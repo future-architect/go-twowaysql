@@ -44,12 +44,10 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	// 基本的に左部分木
 	// If Elifの場合は条件次第
 	switch kind := node.Kind; kind {
-	case NdSQLStmt:
+	case NdSQLStmt, NdBind:
 		return node.Token.str + leftStr, nil
-	case NdBind:
-		return bindConvert(node.Token.str) + leftStr, nil
 	case NdIf, NdElif:
-		truth, err := evalCondition(removeCommentSymbol(node.Token.str), params, kind)
+		truth, err := evalCondition(removeCommentSymbol(node.Token.condition), params)
 		if err != nil {
 			return "", err
 		}
@@ -64,28 +62,19 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 
 // /* If ... */ /* Elif ... */の条件を評価する
 // TODO: 式言語?に対応する
-// kindはNdIfかNdElifでなくてはならない(呼び出し側の制約)
 // 現状は/* If condition */のconditionがtruthyかどうか判別している。
 // notに対応した方がいいだろうか?
-func evalCondition(str string, params map[string]interface{}, kind NodeKind) (bool, error) {
+func evalCondition(value string, params map[string]interface{}) (bool, error) {
 	//テスト用
-	if strings.Contains(str, "true") {
+	if value == "true" {
 		return true, nil
 	}
-	if strings.Contains(str, "false") {
+	if value == "false" {
 		return false, nil
 	}
 	var val string
-	switch kind {
-	case NdIf:
-		val = retrieveValueFromIf(str)
-	case NdElif:
-		val = retrieveValueFromElif(str)
-	default:
-		panic("kind must be NdIf or NdElif")
-	}
 	//log.Println("val:", val)
-	if elem, ok := params[val]; ok {
+	if elem, ok := params[value]; ok {
 		if truth, ok := isTrue(elem); ok {
 			return truth, nil
 		}
