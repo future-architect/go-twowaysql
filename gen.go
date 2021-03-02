@@ -47,7 +47,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	case NdSQLStmt, NdBind:
 		return node.Token.str + leftStr, nil
 	case NdIf, NdElif:
-		truth, err := evalCondition(removeCommentSymbol(node.Token.condition), params)
+		truth, err := evalCondition(node.Token.condition, params)
 		if err != nil {
 			return "", err
 		}
@@ -136,11 +136,4 @@ func arrageWhiteSpace(str string) string {
 	ret = strings.TrimLeft(ret, " ")
 	ret = strings.TrimRight(ret, " ")
 	return ret
-}
-
-// /* */記号の削除
-func removeCommentSymbol(str string) string {
-	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
-	return str
 }

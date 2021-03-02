@@ -131,8 +131,7 @@ func bindConvert(str string) string {
 
 // /* IF condition */ -> condtionを返す
 func retrieveValueFromIf(str string) string {
-	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
+	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
 	str = strings.TrimPrefix(str, "IF")
 	str = strings.TrimLeft(str, " ")
@@ -141,10 +140,16 @@ func retrieveValueFromIf(str string) string {
 
 // /* ELIF condition */ -> condtionを返す
 func retrieveValueFromElif(str string) string {
-	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
+	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
 	str = strings.TrimPrefix(str, "ELIF")
 	str = strings.TrimLeft(str, " ")
+	return str
+}
+
+// input: /*value*/ -> output: value
+func removeCommentSymbol(str string) string {
+	str = strings.TrimPrefix(str, "/*")
+	str = strings.TrimSuffix(str, "*/")
 	return str
 }
