@@ -32,7 +32,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 		return "", err
 	}
 
-	// 戻ってきた
+	//左部分木から戻ってきた
 
 	//右部分木に行く
 	rightStr, err := genInner(node.Right, params)
@@ -40,6 +40,7 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 		return "", err
 	}
 
+	//右部分木から戻ってきた
 	// 何を返すか
 	// 基本的に左部分木
 	// If Elifの場合は条件次第
