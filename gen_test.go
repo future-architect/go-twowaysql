@@ -96,7 +96,7 @@ func TestGen(t *testing.T) {
 		t.Run(tt.name, func(t *testing.T) {
 			if got, err := gen(tt.input, map[string]interface{}{}); err != nil || !tokensEqual(tt.want, got) {
 				if err != nil {
-					t.Log(err)
+					t.Error(err)
 				}
 				if !tokensEqual(tt.want, got) {
 					t.Errorf("Doesn't Match:\nexpected: \n%v\n but got: \n%v\n", tt.want, got)
