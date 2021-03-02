@@ -1,6 +1,10 @@
 package twowaysql
 
-import "errors"
+import (
+	"errors"
+	"strings"
+	"unicode"
+)
 
 type TokenKind int
 
@@ -15,8 +19,10 @@ const (
 )
 
 type Token struct {
-	kind TokenKind
-	str  string
+	kind      TokenKind
+	str       string
+	value     string /* for Bind */
+	condition string /* for IF/ELIF */
 }
 
 //tokenizeは文字列を受け取ってトークンの列を返す。
@@ -74,7 +80,17 @@ func tokinize(str string) ([]Token, error) {
 					index++
 				}
 			}
+
 			token.str = str[start:index]
+			switch token.kind {
+			case TkIf:
+				token.condition = retrieveValueFromIf(token.str)
+			case TkElif:
+				token.condition = retrieveValueFromElif(token.str)
+			case TkBind:
+				token.str = bindConvert(token.str)
+				token.value = retrieveValue(token.str)
+			}
 			start = index
 			tokens = append(tokens, token)
 		}
@@ -92,4 +108,48 @@ func tokinize(str string) ([]Token, error) {
 		kind: TkEndOfProgram,
 	})
 	return tokens, nil
+}
+
+// ?/*value*/から value1を取り出す
+func retrieveValue(str string) string {
+	var retStr string
+	retStr = strings.Trim(str, " ")
+	retStr = strings.TrimLeft(retStr, "?")
+	retStr = strings.TrimPrefix(retStr, "/*")
+	retStr = strings.TrimSuffix(retStr, "*/")
+	return strings.Trim(retStr, " ")
+}
+
+// /*value*/1000 -> ?/*value*/ みたいに変換する
+func bindConvert(str string) string {
+	str = strings.TrimRightFunc(str, func(r rune) bool {
+		return r != unicode.SimpleFold('/')
+	})
+	str = "?" + str
+	return str
+}
+
+// /* IF condition */ -> condtionを返す
+func retrieveValueFromIf(str string) string {
+	str = removeCommentSymbol(str)
+	str = strings.Trim(str, " ")
+	str = strings.TrimPrefix(str, "IF")
+	str = strings.TrimLeft(str, " ")
+	return str
+}
+
+// /* ELIF condition */ -> condtionを返す
+func retrieveValueFromElif(str string) string {
+	str = removeCommentSymbol(str)
+	str = strings.Trim(str, " ")
+	str = strings.TrimPrefix(str, "ELIF")
+	str = strings.TrimLeft(str, " ")
+	return str
+}
+
+// input: /*value*/ -> output: value
+func removeCommentSymbol(str string) string {
+	str = strings.TrimPrefix(str, "/*")
+	str = strings.TrimSuffix(str, "*/")
+	return str
 }

@@ -41,8 +41,9 @@ func TestTokenize(t *testing.T) {
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkIf,
-					str:  "/* IF true */",
+					kind:      TkIf,
+					str:       "/* IF true */",
+					condition: "true",
 				},
 				{
 					kind: TkSQLStmt,
@@ -66,24 +67,27 @@ func TestTokenize(t *testing.T) {
 					str:  "SELECT * FROM person WHERE employee_no < ",
 				},
 				{
-					kind: TkBind,
-					str:  "/*maxEmpNo*/1000",
+					kind:  TkBind,
+					str:   "?/*maxEmpNo*/",
+					value: "maxEmpNo",
 				},
 				{
 					kind: TkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind: TkIf,
-					str:  "/* IF false */",
+					kind:      TkIf,
+					str:       "/* IF false */",
+					condition: "false",
 				},
 				{
 					kind: TkSQLStmt,
 					str:  " AND dept_no = ",
 				},
 				{
-					kind: TkBind,
-					str:  "/*deptNo*/1",
+					kind:  TkBind,
+					str:   "?/*deptNo*/",
+					value: "deptNo",
 				},
 				{
 					kind: TkSQLStmt,
@@ -107,16 +111,18 @@ func TestTokenize(t *testing.T) {
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkIf,
-					str:  "/* IF true */",
+					kind:      TkIf,
+					str:       "/* IF true */",
+					condition: "true",
 				},
 				{
 					kind: TkSQLStmt,
 					str:  "AND dept_no =1",
 				},
 				{
-					kind: TkElif,
-					str:  "/* ELIF true*/",
+					kind:      TkElif,
+					str:       "/* ELIF true*/",
+					condition: "true",
 				},
 				{
 					kind: TkSQLStmt,
@@ -148,16 +154,18 @@ func TestTokenize(t *testing.T) {
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkIf,
-					str:  "/* IF true */",
+					kind:      TkIf,
+					str:       "/* IF true */",
+					condition: "true",
 				},
 				{
 					kind: TkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind: TkIf,
-					str:  "/* IF false */",
+					kind:      TkIf,
+					str:       "/* IF false */",
+					condition: "false",
 				},
 				{
 					kind: TkSQLStmt,

@@ -70,19 +70,16 @@ func (t *Twowaysql) Select(inputStructs *[]Person, query string, params map[stri
 }
 
 func (t *Twowaysql) Run(ctx context.Context) error {
-	convertedQuery, err := t.parse()
+	st, err := t.parse()
 	if err != nil {
 		return err
 	}
-	t.convertedQuery = convertedQuery
 
-	binds, err := retrieveBinds(convertedQuery)
-	if err != nil {
-		return err
-	}
+	//ユーザがどんなクエリに変更されたかが見えるようにするために代入する
+	t.convertedQuery = st.query
 
 	var params []interface{}
-	for _, bind := range binds {
+	for _, bind := range st.bindsValue {
 		if elem, ok := t.params[bind]; ok {
 			params = append(params, elem)
 		} else {
@@ -93,12 +90,12 @@ func (t *Twowaysql) Run(ctx context.Context) error {
 	//一時的な措置、本当はどこかでdatabaseのtypeを知る必要がある。
 	postgres := true
 	if postgres {
-		convertedQuery = convertPlaceHolder(convertedQuery)
+		st.query = convertPlaceHolder(st.query)
 	}
 
 	//log.Println("query", convertedQuery)
 	//log.Println(params...)
-	rows, err := t.db.QueryContext(ctx, convertedQuery, params...)
+	rows, err := t.db.QueryContext(ctx, st.query, params...)
 	if err != nil {
 		return err
 	}
@@ -121,34 +118,6 @@ func (t *Twowaysql) Run(ctx context.Context) error {
 	}
 
 	return rows.Err()
-}
-
-// ?/*...*/を抽出する
-func retrieveBinds(query string) ([]string, error) {
-	var binds []string
-	tokens, err := tokinize(query)
-	if err != nil {
-		return nil, err
-	}
-	for _, token := range tokens {
-		if token.kind == TkBind {
-			// ?/*...*/という形を想定
-			bindValue := retrieveBind(token.str)
-			binds = append(binds, bindValue)
-		}
-	}
-	return binds, nil
-}
-
-// ?/* value */ からvalueを取り出す
-// 事前条件: strは?/* ... */という形である
-func retrieveBind(str string) string {
-	var retStr string
-	retStr = strings.Trim(str, " ")
-	retStr = strings.TrimLeft(retStr, "?")
-	retStr = strings.TrimPrefix(retStr, "/*")
-	retStr = strings.TrimSuffix(retStr, "*/")
-	return strings.Trim(retStr, " ")
 }
 
 // ?/* ... */ を $1/* ... */のような形に変換する。
