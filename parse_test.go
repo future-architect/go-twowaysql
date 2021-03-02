@@ -2,7 +2,7 @@ package twowaysql
 
 import "testing"
 
-func TestParse(t *testing.T) {
+func TestParseQuery(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
@@ -63,15 +63,16 @@ func TestParse(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tw := New(nil).withQuery(tt.input)
-			if got, err := tw.parse(); err != nil || got != tt.want {
+			if got, err := tw.parse(); err != nil || got.query != tt.want {
 				if err != nil {
 					t.Log(err)
 				}
-				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got)
+				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
 			}
 		})
 	}
 }
+
 func TestCondition(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -118,11 +119,42 @@ func TestCondition(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tw := New(nil).withQuery(tt.input).withParams(params)
-			if got, err := tw.parse(); err != nil || got != tt.want {
+			if got, err := tw.parse(); err != nil || got.query != tt.want {
 				if err != nil {
 					t.Log(err)
 				}
-				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got)
+				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
+			}
+		})
+	}
+}
+
+func TestParseBinds(t *testing.T) {
+	tests := []struct {
+		name  string
+		input string
+		want  []string
+	}{
+		{
+			name:  "no Binds",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1 /* END */`,
+			want:  []string{},
+		},
+		{
+			name:  "bind parameter",
+			input: `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 AND deptNo < /*deptNo*/4`,
+			want:  []string{"maxEmpNo", "deptNo"},
+		},
+	}
+	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			tw := New(nil).withQuery(tt.input).withParams(params)
+			if got, err := tw.parse(); err != nil || !stringSliceEqual(got.bindsValue, tt.want) {
+				if err != nil {
+					t.Log(err)
+				}
+				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
 			}
 		})
 	}
@@ -176,4 +208,16 @@ func TestParseAbnormal(t *testing.T) {
 			}
 		})
 	}
+}
+
+func stringSliceEqual(want, got []string) bool {
+	if len(want) != len(got) {
+		return false
+	}
+	for i := 0; i < len(want); i++ {
+		if want[i] != got[i] {
+			return false
+		}
+	}
+	return true
 }
