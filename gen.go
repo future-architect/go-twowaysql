@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"reflect"
 	"strings"
-	"unicode"
 )
 
 // 抽象構文木から目標文字列を生成
@@ -61,15 +60,6 @@ func genInner(node *Tree, params map[string]interface{}) (string, error) {
 	default:
 		return leftStr, nil
 	}
-}
-
-// /*value*/1000 -> ?/*value*/ みたいに変換する
-func bindConvert(str string) string {
-	str = strings.TrimRightFunc(str, func(r rune) bool {
-		return r != unicode.SimpleFold('/')
-	})
-	str = "?" + str
-	return str
 }
 
 // /* If ... */ /* Elif ... */の条件を評価する
@@ -139,24 +129,6 @@ func isTrueInner(val reflect.Value) (truth, ok bool) {
 		return
 	}
 	return truth, true
-}
-
-func retrieveValueFromIf(str string) string {
-	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
-	str = strings.Trim(str, " ")
-	str = strings.TrimPrefix(str, "IF")
-	str = strings.TrimLeft(str, " ")
-	return str
-}
-
-func retrieveValueFromElif(str string) string {
-	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
-	str = strings.Trim(str, " ")
-	str = strings.TrimPrefix(str, "ELIF")
-	str = strings.TrimLeft(str, " ")
-	return str
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
