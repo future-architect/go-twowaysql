@@ -4,7 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"reflect"
 	"strconv"
 	"strings"
 
@@ -89,8 +88,7 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		return err
 	}
 
-	rv := reflect.ValueOf(inputStructs).Interface()
-	return t.db.SelectContext(ctx, rv, convertedQuery, bindParams...)
+	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
 
 }
 
@@ -104,8 +102,7 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 		return err
 	}
 
-	rv := reflect.ValueOf(inputStructs).Interface()
-	return t.db.Select(rv, convertedQuery, bindParams...)
+	return t.db.Select(inputStructs, convertedQuery, bindParams...)
 	//fmt.Println("rv", rv)
 
 }
