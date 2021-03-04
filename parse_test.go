@@ -62,8 +62,8 @@ func TestParseQuery(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New(nil).withQuery(tt.input)
-			if got, err := tw.parse(); err != nil || got.query != tt.want {
+			tw := New(nil)
+			if got, err := tw.parse(tt.input, nil); err != nil || got.query != tt.want {
 				if err != nil {
 					t.Log(err)
 				}
@@ -118,8 +118,8 @@ func TestCondition(t *testing.T) {
 	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New(nil).withQuery(tt.input).withParams(params)
-			if got, err := tw.parse(); err != nil || got.query != tt.want {
+			tw := New(nil)
+			if got, err := tw.parse(tt.input, params); err != nil || got.query != tt.want {
 				if err != nil {
 					t.Log(err)
 				}
@@ -149,8 +149,8 @@ func TestParseBinds(t *testing.T) {
 	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New(nil).withQuery(tt.input).withParams(params)
-			if got, err := tw.parse(); err != nil || !stringSliceEqual(got.bindsValue, tt.want) {
+			tw := New(nil)
+			if got, err := tw.parse(tt.input, params); err != nil || !stringSliceEqual(got.bindsValue, tt.want) {
 				if err != nil {
 					t.Log(err)
 				}
@@ -195,8 +195,8 @@ func TestParseAbnormal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New(nil).withQuery(tt.input)
-			if got, err := tw.parse(); err == nil || err.Error() != tt.wantError {
+			tw := New(nil)
+			if got, err := tw.parse(tt.input, nil); err == nil || err.Error() != tt.wantError {
 				if err == nil {
 					t.Log("got", got)
 					t.Errorf("should return error")

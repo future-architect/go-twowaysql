@@ -18,9 +18,7 @@ type Person struct {
 
 type Twowaysql struct {
 	db             *sqlx.DB
-	query          string
 	convertedQuery string
-	params         map[string]interface{}
 }
 
 func New(db *sqlx.DB) *Twowaysql {
@@ -34,27 +32,11 @@ func (t *Twowaysql) ConvertedQuery() string {
 	return t.convertedQuery
 }
 
-func (t *Twowaysql) withQuery(query string) *Twowaysql {
-	return &Twowaysql{
-		db:             t.db,
-		query:          query,
-		convertedQuery: t.convertedQuery,
-		params:         t.params,
-	}
-}
+// GenerateQueryAndBindValue returns converted query and bind value
+// The return value is expected to be used to issue queries to the database
+func (t *Twowaysql) GenerateQueryAndBindValue(query string, params map[string]interface{}) (string, []interface{}, error) {
 
-func (t *Twowaysql) withParams(params map[string]interface{}) *Twowaysql {
-	return &Twowaysql{
-		db:             t.db,
-		query:          t.query,
-		convertedQuery: t.convertedQuery,
-		params:         params,
-	}
-}
-
-func (t *Twowaysql) generateQueryAndBindValue() (string, []interface{}, error) {
-
-	st, err := t.parse()
+	st, err := t.parse(query, params)
 	if err != nil {
 		return "", nil, err
 	}
@@ -64,7 +46,7 @@ func (t *Twowaysql) generateQueryAndBindValue() (string, []interface{}, error) {
 
 	var bindParams []interface{}
 	for _, bind := range st.bindsValue {
-		if elem, ok := t.params[bind]; ok {
+		if elem, ok := params[bind]; ok {
 			bindParams = append(bindParams, elem)
 		} else {
 			return "", nil, errors.New("no parameter that matches the bind value")
@@ -81,9 +63,8 @@ func (t *Twowaysql) generateQueryAndBindValue() (string, []interface{}, error) {
 // SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
 // 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
-	t = t.withParams(params).withQuery(query)
 
-	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
 	if err != nil {
 		return err
 	}
@@ -95,9 +76,8 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 // Select is a thin wrapper around db.Select in the sqlx package.
 // 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
-	t = t.withParams(params).withQuery(query)
 
-	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
 	if err != nil {
 		return err
 	}
@@ -109,9 +89,8 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 
 // Exec is a thin wrapper around db.Exec in the sqlx package.
 func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
-	t = t.withParams(params).withQuery(query)
 
-	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
 	if err != nil {
 		return nil, err
 	}
@@ -121,9 +100,8 @@ func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[stri
 
 // ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
 func (t *Twowaysql) ExecContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
-	t = t.withParams(params).withQuery(query)
 
-	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
 	if err != nil {
 		return nil, err
 	}
