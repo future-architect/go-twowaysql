@@ -11,19 +11,13 @@ import (
 )
 
 type Twowaysql struct {
-	db             *sqlx.DB
-	convertedQuery string
+	db *sqlx.DB
 }
 
 func New(db *sqlx.DB) *Twowaysql {
 	return &Twowaysql{
 		db: db,
 	}
-}
-
-// ConvertedQuery returns convertedQuery property
-func (t *Twowaysql) ConvertedQuery() string {
-	return t.convertedQuery
 }
 
 // GenerateQueryAndBindValue returns converted query and bind value
@@ -34,9 +28,6 @@ func (t *Twowaysql) GenerateQueryAndBindValue(query string, params map[string]in
 	if err != nil {
 		return "", nil, err
 	}
-
-	//ユーザがどんなクエリに変更されたかが見えるようにするために代入する
-	t.convertedQuery = st.query
 
 	var bindParams []interface{}
 	for _, bind := range st.bindsValue {
