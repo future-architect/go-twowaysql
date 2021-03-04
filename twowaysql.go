@@ -2,6 +2,7 @@ package twowaysql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"reflect"
 	"strconv"
@@ -17,7 +18,6 @@ type Person struct {
 	Email     string `db:"email"`
 }
 
-// inputStructは本来structだが現時点ではpeople決め打ちで書く
 type Twowaysql struct {
 	db             *sqlx.DB
 	query          string
@@ -54,13 +54,11 @@ func (t *Twowaysql) withParams(params map[string]interface{}) *Twowaysql {
 	}
 }
 
-// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
-func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
-	t = t.withParams(params).withQuery(query)
+func (t *Twowaysql) generateQueryAndBindValue() (string, []interface{}, error) {
 
 	st, err := t.parse()
 	if err != nil {
-		return err
+		return "", nil, err
 	}
 
 	//ユーザがどんなクエリに変更されたかが見えるようにするために代入する
@@ -71,19 +69,29 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		if elem, ok := t.params[bind]; ok {
 			bindParams = append(bindParams, elem)
 		} else {
-			return errors.New("no parameter that matches the bind value")
+			return "", nil, errors.New("no parameter that matches the bind value")
 		}
 	}
 
-	//一時的な措置、本当はどこかでdatabaseのtypeを知る必要がある。
-	postgres := true
-	if postgres {
-		st.query = convertPlaceHolder(st.query)
+	//適したplace holderに変換
+	st.query = t.db.Rebind(st.query)
+
+	return st.query, bindParams, nil
+
+}
+
+// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
+func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
+	t = t.withParams(params).withQuery(query)
+
+	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	if err != nil {
+		return err
 	}
 
 	//log.Println("query", convertedQuery)
-	//log.Println(params...)
-	rows, err := t.db.QueryxContext(ctx, st.query, bindParams...)
+	//log.Println(bindParams...)
+	rows, err := t.db.QueryxContext(ctx, convertedQuery, bindParams...)
 	if err != nil {
 		return err
 	}
@@ -109,32 +117,14 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
 	t = t.withParams(params).withQuery(query)
 
-	st, err := t.parse()
+	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
 	if err != nil {
 		return err
 	}
 
-	//ユーザがどんなクエリに変更されたかが見えるようにするために代入する
-	t.convertedQuery = st.query
-
-	var bindParams []interface{}
-	for _, bind := range st.bindsValue {
-		if elem, ok := t.params[bind]; ok {
-			bindParams = append(bindParams, elem)
-		} else {
-			return errors.New("no parameter that matches the bind value")
-		}
-	}
-
-	//一時的な措置、本当はどこかでdatabaseのtypeを知る必要がある。
-	postgres := true
-	if postgres {
-		st.query = convertPlaceHolder(st.query)
-	}
-
 	//log.Println("query", convertedQuery)
-	//log.Println(params...)
-	rows, err := t.db.Queryx(st.query, bindParams...)
+	//log.Println(bindParams...)
+	rows, err := t.db.Queryx(convertedQuery, bindParams...)
 	if err != nil {
 		return err
 	}
@@ -157,30 +147,26 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 
 }
 
-// User should implement runtimescan.Decoder interface
-// This instance is created in user code before runtimescan.Decode() function call
-type decoder struct {
-	src map[string]interface{}
-}
+func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
+	t = t.withParams(params).withQuery(query)
 
-func (m decoder) ParseTag(name, tagStr, pathStr string, elemType reflect.Type) (tag interface{}, err error) {
-	return runtimescan.BasicParseTag(name, tagStr, pathStr, elemType)
-}
-
-func (m *decoder) ExtractValue(tag interface{}) (value interface{}, err error) {
-	t := tag.(*runtimescan.BasicTag)
-	v, ok := m.src[t.Tag]
-	if !ok {
-		return nil, runtimescan.Skip
+	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	if err != nil {
+		return nil, err
 	}
-	return v, nil
+
+	return t.db.Exec(convertedQuery, bindParams...)
 }
 
-func Decode(dest interface{}, src map[string]interface{}) error {
-	dec := &decoder{
-		src: src,
+func (t *Twowaysql) ExecContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
+	t = t.withParams(params).withQuery(query)
+
+	convertedQuery, bindParams, err := t.generateQueryAndBindValue()
+	if err != nil {
+		return nil, err
 	}
-	return runtimescan.Decode(dest, "db", dec)
+
+	return t.db.ExecContext(ctx, convertedQuery, bindParams...)
 }
 
 // ?/* ... */ を $1/* ... */のような形に変換する。
