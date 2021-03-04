@@ -8,7 +8,7 @@ import (
 	_ "github.com/lib/pq"
 )
 
-func TestSelect(t *testing.T) {
+func TestSelectContext(t *testing.T) {
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
 	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	defer db.Close()
@@ -23,7 +23,43 @@ func TestSelect(t *testing.T) {
 	people := []Person{}
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
-	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/'1' /* END */`, params)
+	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, params)
+	if err != nil {
+		t.Errorf("select: failed: %v", err)
+	}
+
+	expected := []Person{
+		{
+			FirstName: "Evan",
+			LastName:  "MacMans",
+			Email:     "evanmacmans@example.com",
+		},
+		{
+			FirstName: "Malvina",
+			LastName:  "FitzSimons",
+			Email:     "malvinafitzsimons@example.com",
+		},
+	}
+
+	if !match(people, expected) {
+		t.Errorf("\nexpected:\n%v\nbut got\n%v\n", expected, people)
+	}
+}
+
+func TestSelect(t *testing.T) {
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	defer db.Close()
+	if err != nil {
+		t.Error(err)
+	}
+
+	tw := New(db)
+
+	people := []Person{}
+	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
+
+	err = tw.Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, params)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}

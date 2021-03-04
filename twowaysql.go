@@ -3,7 +3,6 @@ package twowaysql
 import (
 	"context"
 	"errors"
-	"fmt"
 	"reflect"
 	"strconv"
 	"strings"
@@ -93,36 +92,65 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 	rv := reflect.ValueOf(inputStructs).Elem()
 
 	for rows.Next() {
-		results := make(map[string]interface{})
-		err = rows.MapScan(results)
+		structPtr, err := runtimescan.NewStructInstance(inputStructs)
 		if err != nil {
 			return err
 		}
-		for key, value := range results {
-			fmt.Println("KEY:", key)
-			//課題
-			//データベースから返ってくる値の表現が分からない
-			//どんな感じにinterfaceを処理するか?
-			switch value.(type) {
-			case []uint8:
-				fmt.Printf("Value: %s\n", value)
-				str := fmt.Sprintf("%s", value)
-				results[key] = strings.TrimRight(str, " ")
-			default:
-				fmt.Printf("Value: %v\n", value)
-			}
-		}
+		rows.StructScan(structPtr)
+		//fmt.Println("Person", structPtr)
+		rv.Set(reflect.Append(rv, reflect.ValueOf(structPtr).Elem()))
+	}
 
-		structValue, err := runtimescan.NewStructInstance(inputStructs)
+	return nil
+
+}
+
+// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
+func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
+	t = t.withParams(params).withQuery(query)
+
+	st, err := t.parse()
+	if err != nil {
+		return err
+	}
+
+	//ユーザがどんなクエリに変更されたかが見えるようにするために代入する
+	t.convertedQuery = st.query
+
+	var bindParams []interface{}
+	for _, bind := range st.bindsValue {
+		if elem, ok := t.params[bind]; ok {
+			bindParams = append(bindParams, elem)
+		} else {
+			return errors.New("no parameter that matches the bind value")
+		}
+	}
+
+	//一時的な措置、本当はどこかでdatabaseのtypeを知る必要がある。
+	postgres := true
+	if postgres {
+		st.query = convertPlaceHolder(st.query)
+	}
+
+	//log.Println("query", convertedQuery)
+	//log.Println(params...)
+	rows, err := t.db.Queryx(st.query, bindParams...)
+	if err != nil {
+		return err
+	}
+
+	//fmt.Println("RV", reflect.ValueOf(inputStructs).Elem())
+	rv := reflect.ValueOf(inputStructs).Elem()
+
+	for rows.Next() {
+
+		structPtr, err := runtimescan.NewStructInstance(inputStructs)
 		if err != nil {
 			return err
 		}
-		err = Decode(structValue, results)
-		if err != nil {
-			return err
-		}
-		//fmt.Println("Person", structValue)
-		rv.Set(reflect.Append(rv, reflect.ValueOf(structValue).Elem()))
+		rows.StructScan(structPtr)
+		//fmt.Println("Person", structPtr)
+		rv.Set(reflect.Append(rv, reflect.ValueOf(structPtr).Elem()))
 	}
 
 	return nil
