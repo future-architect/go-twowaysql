@@ -79,6 +79,7 @@ func (t *Twowaysql) generateQueryAndBindValue() (string, []interface{}, error) {
 
 }
 
+// SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
 // 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
 	t = t.withParams(params).withQuery(query)
@@ -93,6 +94,7 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 
 }
 
+// Select is a thin wrapper around db.Select in the sqlx package.
 // 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
 	t = t.withParams(params).withQuery(query)
@@ -108,6 +110,7 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 
 }
 
+// Exec is a thin wrapper around db.Exec in the sqlx package.
 func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
 	t = t.withParams(params).withQuery(query)
 
@@ -119,6 +122,7 @@ func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[stri
 	return t.db.Exec(convertedQuery, bindParams...)
 }
 
+// ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
 func (t *Twowaysql) ExecContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
 	t = t.withParams(params).withQuery(query)
 
