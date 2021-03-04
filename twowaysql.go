@@ -9,7 +9,6 @@ import (
 	"strings"
 
 	"github.com/jmoiron/sqlx"
-	"gitlab.com/osaki-lab/tagscanner/runtimescan"
 )
 
 type Person struct {
@@ -89,27 +88,8 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		return err
 	}
 
-	//log.Println("query", convertedQuery)
-	//log.Println(bindParams...)
-	rows, err := t.db.QueryxContext(ctx, convertedQuery, bindParams...)
-	if err != nil {
-		return err
-	}
-
-	//fmt.Println("RV", reflect.ValueOf(inputStructs).Elem())
-	rv := reflect.ValueOf(inputStructs).Elem()
-
-	for rows.Next() {
-		structPtr, err := runtimescan.NewStructInstance(inputStructs)
-		if err != nil {
-			return err
-		}
-		rows.StructScan(structPtr)
-		//fmt.Println("Person", structPtr)
-		rv.Set(reflect.Append(rv, reflect.ValueOf(structPtr).Elem()))
-	}
-
-	return nil
+	rv := reflect.ValueOf(inputStructs).Interface()
+	return t.db.SelectContext(ctx, rv, convertedQuery, bindParams...)
 
 }
 
@@ -122,28 +102,9 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 		return err
 	}
 
-	//log.Println("query", convertedQuery)
-	//log.Println(bindParams...)
-	rows, err := t.db.Queryx(convertedQuery, bindParams...)
-	if err != nil {
-		return err
-	}
-
-	//fmt.Println("RV", reflect.ValueOf(inputStructs).Elem())
-	rv := reflect.ValueOf(inputStructs).Elem()
-
-	for rows.Next() {
-
-		structPtr, err := runtimescan.NewStructInstance(inputStructs)
-		if err != nil {
-			return err
-		}
-		rows.StructScan(structPtr)
-		//fmt.Println("Person", structPtr)
-		rv.Set(reflect.Append(rv, reflect.ValueOf(structPtr).Elem()))
-	}
-
-	return nil
+	rv := reflect.ValueOf(inputStructs).Interface()
+	return t.db.Select(rv, convertedQuery, bindParams...)
+	//fmt.Println("rv", rv)
 
 }
 
