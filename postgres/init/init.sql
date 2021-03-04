@@ -1,9 +1,9 @@
 CREATE TABLE persons (
 		employee_no INT PRIMARY KEY,
 		dept_no INT,
-		first_name CHAR(100),
-		last_name CHAR(100),
-		email CHAR(100)
+		first_name VARCHAR(100),
+		last_name VARCHAR(100),
+		email VARCHAR(100)
 		);
 
 INSERT INTO persons(employee_no, dept_no, first_name, last_name, email) VALUES

@@ -84,11 +84,11 @@ func tokinize(str string) ([]Token, error) {
 			token.str = str[start:index]
 			switch token.kind {
 			case TkIf:
-				token.condition = retrieveValueFromIf(token.str)
+				token.condition = retrieveConditionFromIf(token.str)
 			case TkElif:
-				token.condition = retrieveValueFromElif(token.str)
+				token.condition = retrieveConditionFromElif(token.str)
 			case TkBind:
-				token.str = bindConvert(token.str)
+				token.str = bindLiteral(token.str)
 				token.value = retrieveValue(token.str)
 			}
 			start = index
@@ -121,7 +121,7 @@ func retrieveValue(str string) string {
 }
 
 // /*value*/1000 -> ?/*value*/ みたいに変換する
-func bindConvert(str string) string {
+func bindLiteral(str string) string {
 	str = strings.TrimRightFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
 	})
@@ -130,7 +130,7 @@ func bindConvert(str string) string {
 }
 
 // /* IF condition */ -> condtionを返す
-func retrieveValueFromIf(str string) string {
+func retrieveConditionFromIf(str string) string {
 	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
 	str = strings.TrimPrefix(str, "IF")
@@ -139,7 +139,7 @@ func retrieveValueFromIf(str string) string {
 }
 
 // /* ELIF condition */ -> condtionを返す
-func retrieveValueFromElif(str string) string {
+func retrieveConditionFromElif(str string) string {
 	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
 	str = strings.TrimPrefix(str, "ELIF")
