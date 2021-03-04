@@ -26,7 +26,7 @@ func TestE2E(t *testing.T) {
 
 	ctx := context.Background()
 
-	people := []Person{}
+	var people []Person
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
 	expected := []Person{
@@ -54,11 +54,11 @@ func TestE2E(t *testing.T) {
 	people = []Person{}
 	err = tw.Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, params)
 	if err != nil {
-		t.Errorf("select: failed: %v", err)
+		t.Fatalf("select: failed: %v", err)
 	}
 
 	if !match(people, expected) {
-		t.Errorf("\nexpected:\n%v\nbut got\n%v\n", expected, people)
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
 	}
 }
 
