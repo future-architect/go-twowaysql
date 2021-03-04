@@ -46,7 +46,6 @@ func (t *Twowaysql) GenerateQueryAndBindValue(query string, params map[string]in
 }
 
 // SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
-// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
 
 	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
@@ -59,7 +58,6 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 }
 
 // Select is a thin wrapper around db.Select in the sqlx package.
-// 事前条件: inputStructのフィールドとqueryで返ってくる要素の長さと並びは一致していなければならない。
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
 
 	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
