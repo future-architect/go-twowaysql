@@ -89,10 +89,9 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		return err
 	}
 
-	fmt.Println("TYPE", reflect.TypeOf(inputStructs).Elem())
-	fmt.Println("RV", reflect.ValueOf(inputStructs).Elem())
+	//fmt.Println("RV", reflect.ValueOf(inputStructs).Elem())
 	rv := reflect.ValueOf(inputStructs).Elem()
-	//rv := reflect.MakeSlice(reflect.TypeOf(inputStructs).Elem(), 0, 0)
+
 	for rows.Next() {
 		results := make(map[string]interface{})
 		err = rows.MapScan(results)
@@ -101,6 +100,7 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		}
 		for key, value := range results {
 			fmt.Println("KEY:", key)
+			//課題
 			//データベースから返ってくる値の表現が分からない
 			//どんな感じにinterfaceを処理するか?
 			switch value.(type) {
@@ -113,33 +113,6 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 			}
 		}
 
-		/*
-			structType := reflect.TypeOf(t.inputStructs).Elem()
-			fmt.Println("Type", structType)
-			structValue := reflect.New(structType).Elem()
-			fmt.Println("Value", structValue)
-		*/
-		//structPtr := reflect.New(structType).Elem().Interface()
-		//p := t.inputStructs.(Person)
-		/*
-			rt := structValue.Type()
-			for i := 0; i < rt.NumField(); i++ {
-				// フィールドの取得
-				f := rt.Field(i)
-				// フィールド名
-				fmt.Println(f.Name)
-				// 型
-				fmt.Println(f.Type)
-				// タグ
-				fmt.Println(f.Tag)
-			}
-		*/
-		/*
-			var p Person
-			var pp interface{}
-			pp = p
-		*/
-		//pp := []Person{}
 		structValue, err := runtimescan.NewStructInstance(inputStructs)
 		if err != nil {
 			return err
@@ -148,12 +121,9 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		if err != nil {
 			return err
 		}
-		fmt.Println("Person", structValue)
+		//fmt.Println("Person", structValue)
 		rv.Set(reflect.Append(rv, reflect.ValueOf(structValue).Elem()))
 	}
-
-	fmt.Println("RV", rv)
-	inputStructs = rv
 
 	return nil
 

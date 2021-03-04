@@ -21,9 +21,9 @@ func TestSelect(t *testing.T) {
 	ctx := context.Background()
 
 	people := []Person{}
-	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 10}
+	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 12}
 
-	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/'1' /* END */`, params)
+	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/'1' /* END */`, params)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}
@@ -33,6 +33,11 @@ func TestSelect(t *testing.T) {
 			FirstName: "Evan",
 			LastName:  "MacMans",
 			Email:     "evanmacmans@example.com",
+		},
+		{
+			FirstName: "Malvina",
+			LastName:  "FitzSimons",
+			Email:     "malvinafitzsimons@example.com",
 		},
 	}
 
