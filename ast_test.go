@@ -299,18 +299,16 @@ func printWalkInner(t *Tree) {
 
 // テストの期待する結果を作成
 func makeEmpty() *Tree {
-	NdEndOfProgram1 := Tree{
+	return &Tree{
 		Kind: NdEndOfProgram,
 		Token: &Token{
 			kind: TkEndOfProgram,
 		},
 	}
-	return &NdEndOfProgram1
-
 }
 
 func makeNoComment() *Tree {
-	NdSQLStmt1 := Tree{
+	return &Tree{
 		Kind: NdSQLStmt,
 		Left: &Tree{
 			Kind: NdEndOfProgram,
@@ -323,13 +321,10 @@ func makeNoComment() *Tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
 		},
 	}
-	return &NdSQLStmt1
-
 }
 
 func makeTreeIf() *Tree {
-
-	NdSQLstmt1 := Tree{
+	return &Tree{
 		Kind: NdSQLStmt,
 		Left: &Tree{
 			Kind: NdIf,
@@ -364,12 +359,10 @@ func makeTreeIf() *Tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-
-	return &NdSQLstmt1
 }
 
 func makeTreeIfBind() *Tree {
-	NdSQLStmt1 := Tree{
+	return &Tree{
 		Kind: NdSQLStmt,
 		Left: &Tree{
 			Kind: NdBind,
@@ -434,11 +427,10 @@ func makeTreeIfBind() *Tree {
 			str:  "SELECT * FROM person WHERE employee_no < ",
 		},
 	}
-	return &NdSQLStmt1
 }
 
 func makeIfElifElse() *Tree {
-	NdSQLStmt1 := Tree{
+	return &Tree{
 		Kind: NdSQLStmt,
 		Left: &Tree{
 			Kind: NdIf,
@@ -502,11 +494,10 @@ func makeIfElifElse() *Tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-	return &NdSQLStmt1
 }
 
 func makeIfNest() *Tree {
-	NdSQLStmt1 := Tree{
+	return &Tree{
 		Kind: NdSQLStmt,
 		Left: &Tree{
 			Kind: NdIf,
@@ -598,5 +589,4 @@ func makeIfNest() *Tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-	return &NdSQLStmt1
 }

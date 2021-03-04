@@ -20,9 +20,9 @@ func New(db *sqlx.DB) *Twowaysql {
 	}
 }
 
-// GenerateQueryAndBindValue returns converted query and bind value
+// Generate returns converted query and bind value
 // The return value is expected to be used to issue queries to the database
-func (t *Twowaysql) GenerateQueryAndBindValue(query string, params map[string]interface{}) (string, []interface{}, error) {
+func (t *Twowaysql) Generate(query string, params map[string]interface{}) (string, []interface{}, error) {
 
 	st, err := t.parse(query, params)
 	if err != nil {
@@ -48,7 +48,7 @@ func (t *Twowaysql) GenerateQueryAndBindValue(query string, params map[string]in
 // SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
 func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
 
-	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
+	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
 		return err
 	}
@@ -60,7 +60,7 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 // Select is a thin wrapper around db.Select in the sqlx package.
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
 
-	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
+	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
 		return err
 	}
@@ -73,7 +73,7 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 // Exec is a thin wrapper around db.Exec in the sqlx package.
 func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
+	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
 		return nil, err
 	}
@@ -84,7 +84,7 @@ func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[stri
 // ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
 func (t *Twowaysql) ExecContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := t.GenerateQueryAndBindValue(query, params)
+	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
 		return nil, err
 	}
