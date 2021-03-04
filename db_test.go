@@ -3,7 +3,6 @@ package twowaysql
 import (
 	"context"
 	"database/sql"
-	"fmt"
 	"testing"
 )
 
@@ -27,7 +26,7 @@ func TestDBConnection(t *testing.T) {
 		if err := rows.Scan(&name); err != nil {
 			t.Error(err)
 		}
-		fmt.Printf("first_name: %v\n", name)
+		t.Logf("first_name: %v\n", name)
 	}
 	if err := rows.Err(); err != nil {
 		t.Error(err)
