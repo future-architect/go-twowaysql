@@ -26,7 +26,7 @@ func (t *Twowaysql) parse() (state, error) {
 		return state{}, err
 	}
 
-	query := toConvertedQuery(generatedTokens)
+	query := buildQuery(generatedTokens)
 	binds := retrieveBinds(generatedTokens)
 
 	return state{
@@ -48,7 +48,7 @@ func retrieveBinds(tokens []Token) []string {
 	return binds
 }
 
-func toConvertedQuery(tokens []Token) string {
+func buildQuery(tokens []Token) string {
 	var b strings.Builder
 	for _, token := range tokens {
 		b.WriteString(token.str)
@@ -64,10 +64,9 @@ func arrageWhiteSpace(str string) string {
 	buff := bytes.NewBufferString(ret)
 	for i := 0; i < len(str); i++ {
 		if i < len(str)-1 && str[i] == ' ' && str[i+1] == ' ' {
-			//do nothing
-		} else {
-			buff.WriteByte(str[i])
+			continue
 		}
+		buff.WriteByte(str[i])
 	}
 	ret = buff.String()
 	ret = strings.TrimLeft(ret, " ")
