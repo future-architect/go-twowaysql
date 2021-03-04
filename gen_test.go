@@ -7,18 +7,18 @@ import (
 func TestGen(t *testing.T) {
 	tests := []struct {
 		name  string
-		input *Tree
-		want  []Token
+		input *tree
+		want  []token
 	}{
 		{
 			name:  "",
 			input: makeEmpty(),
-			want:  []Token{},
+			want:  []token{},
 		},
 		{
 			name:  "no comment",
 			input: makeNoComment(),
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
@@ -28,7 +28,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if",
 			input: makeTreeIf(),
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -42,7 +42,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if and bind",
 			input: makeTreeIfBind(),
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < ",
@@ -61,7 +61,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if elif else",
 			input: makeIfElifElse(),
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -75,7 +75,7 @@ func TestGen(t *testing.T) {
 		{
 			name:  "if nest",
 			input: makeIfNest(),
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",

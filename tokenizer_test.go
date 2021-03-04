@@ -8,12 +8,12 @@ func TestTokenize(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
-		want  []Token
+		want  []token
 	}{
 		{
 			name:  "empty",
 			input: "",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkEndOfProgram,
 				},
@@ -22,7 +22,7 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "no comment",
 			input: "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
@@ -35,7 +35,7 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "if",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -61,7 +61,7 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "if and bind",
 			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/1 /* END */",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < ",
@@ -105,7 +105,7 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "if elif else",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */AND dept_no =1/* ELIF true*/ AND boss_no = 2 /*ELSE */ AND id=3/* END */",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -148,7 +148,7 @@ func TestTokenize(t *testing.T) {
 		{
 			name:  "if nest",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* END */ /* ELSE*/ AND boss_id=4 /* END */",
-			want: []Token{
+			want: []token{
 				{
 					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
@@ -237,7 +237,7 @@ func TestTokenizeShouldReturnError(t *testing.T) {
 	}
 }
 
-func tokensEqual(want, got []Token) bool {
+func tokensEqual(want, got []token) bool {
 	if len(want) != len(got) {
 		return false
 	}

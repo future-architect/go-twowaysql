@@ -6,7 +6,7 @@ import (
 )
 
 type state struct {
-	tokens     []Token
+	tokens     []token
 	bindsValue []string
 	query      string
 }
@@ -38,7 +38,7 @@ func (t *Twowaysql) parse(query string, params map[string]interface{}) (state, e
 }
 
 // TkBindのvalueをtoken列から取り出す
-func retrieveBinds(tokens []Token) []string {
+func retrieveBinds(tokens []token) []string {
 	var binds []string
 	for _, token := range tokens {
 		if token.kind == tkBind {
@@ -48,7 +48,7 @@ func retrieveBinds(tokens []Token) []string {
 	return binds
 }
 
-func buildQuery(tokens []Token) string {
+func buildQuery(tokens []token) string {
 	var b strings.Builder
 	for _, token := range tokens {
 		b.WriteString(token.str)

@@ -8,17 +8,17 @@ import (
 // 抽象構文木からトークン列を生成
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
-func gen(trees *Tree, params map[string]interface{}) ([]Token, error) {
+func gen(trees *tree, params map[string]interface{}) ([]token, error) {
 	res, err := genInner(trees, params)
 	if err != nil {
-		return []Token{}, err
+		return []token{}, err
 	}
 	return res, nil
 }
 
-func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
+func genInner(node *tree, params map[string]interface{}) ([]token, error) {
 	if node == nil {
-		return []Token{}, nil
+		return []token{}, nil
 	}
 
 	//行きがけ
@@ -26,7 +26,7 @@ func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
 	//左部分木に行く
 	leftStr, err := genInner(node.Left, params)
 	if err != nil {
-		return []Token{}, err
+		return []token{}, err
 	}
 
 	//左部分木から戻ってきた
@@ -34,7 +34,7 @@ func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
 	//右部分木に行く
 	rightStr, err := genInner(node.Right, params)
 	if err != nil {
-		return []Token{}, err
+		return []token{}, err
 	}
 
 	//右部分木から戻ってきた
@@ -44,11 +44,11 @@ func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
 	switch kind := node.Kind; kind {
 	case ndSQLStmt, ndBind:
 		//めちゃめちゃ実行効率悪い気が...
-		return append([]Token{*node.Token}, leftStr...), nil
+		return append([]token{*node.Token}, leftStr...), nil
 	case ndIf, ndElif:
 		truth, err := evalCondition(node.Token.condition, params)
 		if err != nil {
-			return []Token{}, err
+			return []token{}, err
 		}
 		if truth {
 			return leftStr, nil
