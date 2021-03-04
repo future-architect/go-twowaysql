@@ -5,20 +5,20 @@ import (
 	"fmt"
 )
 
-type NodeKind int
+type nodeKind int
 
 const (
-	NdSQLStmt NodeKind = iota + 1
-	NdBind
-	NdIf
-	NdElif
-	NdElse
-	NdEnd
-	NdEndOfProgram
+	ndSQLStmt nodeKind = iota + 1
+	ndBind
+	ndIf
+	ndElif
+	ndElse
+	ndEnd
+	ndEndOfProgram
 )
 
 type Tree struct {
-	Kind  NodeKind
+	Kind  nodeKind
 	Left  *Tree
 	Right *Tree
 	Token *Token
@@ -61,10 +61,10 @@ func program(tokens []Token) (*Tree, error) {
 func stmt(tokens []Token, index *int) (*Tree, error) {
 	var node *Tree
 	var err error
-	if consume(tokens, index, TkSQLStmt) {
+	if consume(tokens, index, tkSQLStmt) {
 		// SQLStmt stmt
 		node = &Tree{
-			Kind:  NdSQLStmt,
+			Kind:  ndSQLStmt,
 			Token: &tokens[*index-1],
 		}
 
@@ -73,10 +73,10 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			return nil, err
 		}
 
-	} else if consume(tokens, index, TkBind) {
+	} else if consume(tokens, index, tkBind) {
 		// Bind stmt
 		node = &Tree{
-			Kind:  NdBind,
+			Kind:  ndBind,
 			Token: &tokens[*index-1],
 		}
 
@@ -84,19 +84,19 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 		if err != nil {
 			return nil, err
 		}
-	} else if consume(tokens, index, TkEndOfProgram) {
+	} else if consume(tokens, index, tkEndOfProgram) {
 		// EndOfProgram
 		node = &Tree{
-			Kind: NodeKind(TkEndOfProgram),
+			Kind: nodeKind(tkEndOfProgram),
 			// consumeはTkEndOfProgramの時はインクリメントしないから1を引かない
 			// かなりよくない設計
 			Token: &tokens[*index],
 		}
 		return node, nil
-	} else if consume(tokens, index, TkIf) {
+	} else if consume(tokens, index, tkIf) {
 		//"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
 		node = &Tree{
-			Kind:  NdIf,
+			Kind:  ndIf,
 			Token: &tokens[*index-1],
 		}
 		node.Left, err = stmt(tokens, index)
@@ -106,9 +106,9 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 		tmpNode := node
 		for {
 			//("ELLF" stmt)*
-			if consume(tokens, index, TkElif) {
+			if consume(tokens, index, tkElif) {
 				child := &Tree{
-					Kind:  NdElif,
+					Kind:  ndElif,
 					Token: &tokens[*index-1],
 				}
 				tmpNode.Right = child
@@ -122,10 +122,10 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			}
 			break
 		}
-		if consume(tokens, index, TkElse) {
+		if consume(tokens, index, tkElse) {
 			//("ELSE" stmt)?
 			child := &Tree{
-				Kind:  NdElse,
+				Kind:  ndElse,
 				Token: &tokens[*index-1],
 			}
 			tmpNode.Right = child
@@ -137,10 +137,10 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 			}
 		}
 
-		if consume(tokens, index, TkEnd) {
+		if consume(tokens, index, tkEnd) {
 			//"END"
 			child := &Tree{
-				Kind:  NdEnd,
+				Kind:  ndEnd,
 				Token: &tokens[*index-1],
 			}
 			tmpNode.Right = child
@@ -165,7 +165,7 @@ func consume(tokens []Token, index *int, kind TokenKind) bool {
 	if tokens[*index].kind == kind {
 		// TkEndOfPraogramでインクリメントしてしまうと
 		// その後のconsume呼び出しでIndex Out Of Bounds例外が発生してしまう
-		if kind != TkEndOfProgram {
+		if kind != tkEndOfProgram {
 			*index++
 		}
 		return true

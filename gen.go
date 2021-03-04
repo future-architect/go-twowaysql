@@ -42,10 +42,10 @@ func genInner(node *Tree, params map[string]interface{}) ([]Token, error) {
 	// 基本的に左部分木
 	// If Elifの場合は条件次第
 	switch kind := node.Kind; kind {
-	case NdSQLStmt, NdBind:
+	case ndSQLStmt, ndBind:
 		//めちゃめちゃ実行効率悪い気が...
 		return append([]Token{*node.Token}, leftStr...), nil
-	case NdIf, NdElif:
+	case ndIf, ndElif:
 		truth, err := evalCondition(node.Token.condition, params)
 		if err != nil {
 			return []Token{}, err

@@ -9,13 +9,13 @@ import (
 type TokenKind int
 
 const (
-	TkSQLStmt TokenKind = iota + 1
-	TkIf
-	TkElif
-	TkElse
-	TkEnd
-	TkBind
-	TkEndOfProgram
+	tkSQLStmt TokenKind = iota + 1
+	tkIf
+	tkElif
+	tkElse
+	tkEnd
+	tkBind
+	tkEndOfProgram
 )
 
 type Token struct {
@@ -40,7 +40,7 @@ func tokinize(str string) ([]Token, error) {
 		if str[index:index+2] == "/*" {
 			//コメントの直前の塊をTKSQLStmtとしてappend
 			tokens = append(tokens, Token{
-				kind: TkSQLStmt,
+				kind: tkSQLStmt,
 				str:  str[start:index],
 			})
 			start = index
@@ -48,22 +48,22 @@ func tokinize(str string) ([]Token, error) {
 			token := Token{}
 			for index < length && str[index:index+2] != "*/" {
 				if str[index:index+2] == "IF" {
-					token.kind = TkIf
+					token.kind = tkIf
 					index += 2
 					continue
 				}
 				if str[index:index+4] == "ELIF" {
-					token.kind = TkElif
+					token.kind = tkElif
 					index += 4
 					continue
 				}
 				if str[index:index+4] == "ELSE" {
-					token.kind = TkElse
+					token.kind = tkElse
 					index += 4
 					continue
 				}
 				if str[index:index+3] == "END" {
-					token.kind = TkEnd
+					token.kind = tkEnd
 					index += 3
 					continue
 				}
@@ -75,7 +75,7 @@ func tokinize(str string) ([]Token, error) {
 			}
 			index += 2
 			if token.kind == 0 {
-				token.kind = TkBind
+				token.kind = tkBind
 				for index < length && str[index] != ' ' {
 					index++
 				}
@@ -83,11 +83,11 @@ func tokinize(str string) ([]Token, error) {
 
 			token.str = str[start:index]
 			switch token.kind {
-			case TkIf:
+			case tkIf:
 				token.condition = retrieveConditionFromIf(token.str)
-			case TkElif:
+			case tkElif:
 				token.condition = retrieveConditionFromElif(token.str)
-			case TkBind:
+			case tkBind:
 				token.str = bindLiteral(token.str)
 				token.value = retrieveValue(token.str)
 			}
@@ -96,7 +96,7 @@ func tokinize(str string) ([]Token, error) {
 		}
 		if index == length-1 {
 			tokens = append(tokens, Token{
-				kind: TkSQLStmt,
+				kind: tkSQLStmt,
 				str:  str[start : index+1],
 			})
 		}
@@ -105,7 +105,7 @@ func tokinize(str string) ([]Token, error) {
 
 	//処理しやすいように終点Tokenを付与する
 	tokens = append(tokens, Token{
-		kind: TkEndOfProgram,
+		kind: tkEndOfProgram,
 	})
 	return tokens, nil
 }

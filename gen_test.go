@@ -20,7 +20,7 @@ func TestGen(t *testing.T) {
 			input: makeNoComment(),
 			want: []Token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
 				},
 			},
@@ -30,11 +30,11 @@ func TestGen(t *testing.T) {
 			input: makeTreeIf(),
 			want: []Token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND dept_no = 1",
 				},
 			},
@@ -44,16 +44,16 @@ func TestGen(t *testing.T) {
 			input: makeTreeIfBind(),
 			want: []Token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < ",
 				},
 				{
-					kind:  TkBind,
+					kind:  tkBind,
 					str:   "?/*maxEmpNo*/",
 					value: "maxEmpNo",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 			},
@@ -63,11 +63,11 @@ func TestGen(t *testing.T) {
 			input: makeIfElifElse(),
 			want: []Token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "AND dept_no =1",
 				},
 			},
@@ -77,15 +77,15 @@ func TestGen(t *testing.T) {
 			input: makeIfNest(),
 			want: []Token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND id=3 ",
 				},
 			},

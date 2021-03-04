@@ -41,7 +41,7 @@ func (t *Twowaysql) parse(query string, params map[string]interface{}) (state, e
 func retrieveBinds(tokens []Token) []string {
 	var binds []string
 	for _, token := range tokens {
-		if token.kind == TkBind {
+		if token.kind == tkBind {
 			binds = append(binds, token.value)
 		}
 	}
