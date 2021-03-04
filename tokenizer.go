@@ -6,20 +6,21 @@ import (
 	"unicode"
 )
 
-type TokenKind int
+type tokenKind int
 
 const (
-	TkSQLStmt TokenKind = iota + 1
-	TkIf
-	TkElif
-	TkElse
-	TkEnd
-	TkBind
-	TkEndOfProgram
+	tkSQLStmt tokenKind = iota + 1
+	tkIf
+	tkElif
+	tkElse
+	tkEnd
+	tkBind
+	tkEndOfProgram
 )
 
-type Token struct {
-	kind      TokenKind
+// token holds the information of the token
+type token struct {
+	kind      tokenKind
 	str       string
 	value     string /* for Bind */
 	condition string /* for IF/ELIF */
@@ -27,8 +28,8 @@ type Token struct {
 
 //tokenizeは文字列を受け取ってトークンの列を返す。
 //Token構造体をどのように設計するのが良いかはまだよく分からない
-func tokinize(str string) ([]Token, error) {
-	var tokens []Token
+func tokinize(str string) ([]token, error) {
+	var tokens []token
 
 	index := 0
 	start := 0
@@ -39,31 +40,31 @@ func tokinize(str string) ([]Token, error) {
 	for index < length {
 		if str[index:index+2] == "/*" {
 			//コメントの直前の塊をTKSQLStmtとしてappend
-			tokens = append(tokens, Token{
-				kind: TkSQLStmt,
+			tokens = append(tokens, token{
+				kind: tkSQLStmt,
 				str:  str[start:index],
 			})
 			start = index
 			index += 2
-			token := Token{}
+			tok := token{}
 			for index < length && str[index:index+2] != "*/" {
 				if str[index:index+2] == "IF" {
-					token.kind = TkIf
+					tok.kind = tkIf
 					index += 2
 					continue
 				}
 				if str[index:index+4] == "ELIF" {
-					token.kind = TkElif
+					tok.kind = tkElif
 					index += 4
 					continue
 				}
 				if str[index:index+4] == "ELSE" {
-					token.kind = TkElse
+					tok.kind = tkElse
 					index += 4
 					continue
 				}
 				if str[index:index+3] == "END" {
-					token.kind = TkEnd
+					tok.kind = tkEnd
 					index += 3
 					continue
 				}
@@ -71,32 +72,32 @@ func tokinize(str string) ([]Token, error) {
 			}
 			// */がなければ不正なフォーマット
 			if str[index:index+2] != "*/" {
-				return []Token{}, errors.New("can not tokenize")
+				return []token{}, errors.New("can not tokenize")
 			}
 			index += 2
-			if token.kind == 0 {
-				token.kind = TkBind
+			if tok.kind == 0 {
+				tok.kind = tkBind
 				for index < length && str[index] != ' ' {
 					index++
 				}
 			}
 
-			token.str = str[start:index]
-			switch token.kind {
-			case TkIf:
-				token.condition = retrieveConditionFromIf(token.str)
-			case TkElif:
-				token.condition = retrieveConditionFromElif(token.str)
-			case TkBind:
-				token.str = bindLiteral(token.str)
-				token.value = retrieveValue(token.str)
+			tok.str = str[start:index]
+			switch tok.kind {
+			case tkIf:
+				tok.condition = retrieveConditionFromIf(tok.str)
+			case tkElif:
+				tok.condition = retrieveConditionFromElif(tok.str)
+			case tkBind:
+				tok.str = bindLiteral(tok.str)
+				tok.value = retrieveValue(tok.str)
 			}
 			start = index
-			tokens = append(tokens, token)
+			tokens = append(tokens, tok)
 		}
 		if index == length-1 {
-			tokens = append(tokens, Token{
-				kind: TkSQLStmt,
+			tokens = append(tokens, token{
+				kind: tkSQLStmt,
 				str:  str[start : index+1],
 			})
 		}
@@ -104,8 +105,8 @@ func tokinize(str string) ([]Token, error) {
 	}
 
 	//処理しやすいように終点Tokenを付与する
-	tokens = append(tokens, Token{
-		kind: TkEndOfProgram,
+	tokens = append(tokens, token{
+		kind: tkEndOfProgram,
 	})
 	return tokens, nil
 }

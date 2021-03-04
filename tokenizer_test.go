@@ -8,199 +8,199 @@ func TestTokenize(t *testing.T) {
 	tests := []struct {
 		name  string
 		input string
-		want  []Token
+		want  []token
 	}{
 		{
 			name:  "empty",
 			input: "",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
 		{
 			name:  "no comment",
 			input: "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
 				},
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
 		{
 			name:  "if",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind:      TkIf,
+					kind:      tkIf,
 					str:       "/* IF true */",
 					condition: "true",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND dept_no = 1",
 				},
 				{
-					kind: TkEnd,
+					kind: tkEnd,
 					str:  "/* END */",
 				},
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
 		{
 			name:  "if and bind",
 			input: "SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF false */ AND dept_no = /*deptNo*/1 /* END */",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < ",
 				},
 				{
-					kind:  TkBind,
+					kind:  tkBind,
 					str:   "?/*maxEmpNo*/",
 					value: "maxEmpNo",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind:      TkIf,
+					kind:      tkIf,
 					str:       "/* IF false */",
 					condition: "false",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND dept_no = ",
 				},
 				{
-					kind:  TkBind,
+					kind:  tkBind,
 					str:   "?/*deptNo*/",
 					value: "deptNo",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind: TkEnd,
+					kind: tkEnd,
 					str:  "/* END */",
 				},
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
 		{
 			name:  "if elif else",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */AND dept_no =1/* ELIF true*/ AND boss_no = 2 /*ELSE */ AND id=3/* END */",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind:      TkIf,
+					kind:      tkIf,
 					str:       "/* IF true */",
 					condition: "true",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "AND dept_no =1",
 				},
 				{
-					kind:      TkElif,
+					kind:      tkElif,
 					str:       "/* ELIF true*/",
 					condition: "true",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND boss_no = 2 ",
 				},
 				{
-					kind: TkElse,
+					kind: tkElse,
 					str:  "/*ELSE */",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND id=3",
 				},
 				{
-					kind: TkEnd,
+					kind: tkEnd,
 					str:  "/* END */",
 				},
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
 		{
 			name:  "if nest",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ /* IF false */ AND dept_no =1 /* ELSE */ AND id=3 /* END */ /* ELSE*/ AND boss_id=4 /* END */",
-			want: []Token{
+			want: []token{
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 				},
 				{
-					kind:      TkIf,
+					kind:      tkIf,
 					str:       "/* IF true */",
 					condition: "true",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind:      TkIf,
+					kind:      tkIf,
 					str:       "/* IF false */",
 					condition: "false",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND dept_no =1 ",
 				},
 				{
-					kind: TkElse,
+					kind: tkElse,
 					str:  "/* ELSE */",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND id=3 ",
 				},
 				{
-					kind: TkEnd,
+					kind: tkEnd,
 					str:  "/* END */",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " ",
 				},
 				{
-					kind: TkElse,
+					kind: tkElse,
 					str:  "/* ELSE*/",
 				},
 				{
-					kind: TkSQLStmt,
+					kind: tkSQLStmt,
 					str:  " AND boss_id=4 ",
 				},
 				{
-					kind: TkEnd,
+					kind: tkEnd,
 					str:  "/* END */",
 				},
 				{
-					kind: TkEndOfProgram,
+					kind: tkEndOfProgram,
 				},
 			},
 		},
@@ -237,7 +237,7 @@ func TestTokenizeShouldReturnError(t *testing.T) {
 	}
 }
 
-func tokensEqual(want, got []Token) bool {
+func tokensEqual(want, got []token) bool {
 	if len(want) != len(got) {
 		return false
 	}

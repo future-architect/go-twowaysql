@@ -65,7 +65,7 @@ func TestParseQuery(t *testing.T) {
 			tw := New(nil)
 			if got, err := tw.parse(tt.input, nil); err != nil || got.query != tt.want {
 				if err != nil {
-					t.Log(err)
+					t.Error(err)
 				}
 				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
 			}
@@ -121,7 +121,7 @@ func TestCondition(t *testing.T) {
 			tw := New(nil)
 			if got, err := tw.parse(tt.input, params); err != nil || got.query != tt.want {
 				if err != nil {
-					t.Log(err)
+					t.Error(err)
 				}
 				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
 			}
@@ -152,7 +152,7 @@ func TestParseBinds(t *testing.T) {
 			tw := New(nil)
 			if got, err := tw.parse(tt.input, params); err != nil || !stringSliceEqual(got.bindsValue, tt.want) {
 				if err != nil {
-					t.Log(err)
+					t.Error(err)
 				}
 				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
 			}
@@ -198,7 +198,7 @@ func TestParseAbnormal(t *testing.T) {
 			tw := New(nil)
 			if got, err := tw.parse(tt.input, nil); err == nil || err.Error() != tt.wantError {
 				if err == nil {
-					t.Log("got", got)
+					t.Error("got", got)
 					t.Errorf("should return error")
 				} else {
 					t.Errorf("\nexpected:\n%v\nbut got\n%v\n", tt.wantError, err.Error())
