@@ -27,7 +27,7 @@ func TestGenerate(t *testing.T) {
 			input:     `SELECT * FROM person WHERE name = /* name */"Tim"`,
 			wantQuery: `SELECT * FROM person WHERE name = $1/* name */`,
 			wantParams: []interface{}{
-				"Jeff Dean",
+				"Jeff",
 			},
 		},
 		{
@@ -44,7 +44,7 @@ func TestGenerate(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			tw := New(db)
-			if gotQuery, gotParams, err := tw.Generate(tt.input, params); err != nil || gotQuery != tt.wantQuery || interfaceSliceEqual(gotParams, tt.wantParams) {
+			if gotQuery, gotParams, err := tw.Generate(tt.input, params); err != nil || gotQuery != tt.wantQuery || !interfaceSliceEqual(gotParams, tt.wantParams) {
 				if err != nil {
 					t.Error(err)
 				}
