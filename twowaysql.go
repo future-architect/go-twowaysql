@@ -10,12 +10,6 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-type Person struct {
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
-	Email     string `db:"email"`
-}
-
 type Twowaysql struct {
 	db             *sqlx.DB
 	convertedQuery string

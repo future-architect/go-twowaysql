@@ -8,6 +8,12 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type Person struct {
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Email     string `db:"email"`
+}
+
 func TestE2E(t *testing.T) {
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
 	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
