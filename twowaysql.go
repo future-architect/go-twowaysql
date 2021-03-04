@@ -10,10 +10,12 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
+// Twowaysql is a struct for issuing two way sql query
 type Twowaysql struct {
 	db *sqlx.DB
 }
 
+// New returns instance of Twowaysql
 func New(db *sqlx.DB) *Twowaysql {
 	return &Twowaysql{
 		db: db,

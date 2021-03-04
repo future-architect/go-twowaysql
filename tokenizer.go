@@ -6,10 +6,10 @@ import (
 	"unicode"
 )
 
-type TokenKind int
+type tokenKind int
 
 const (
-	tkSQLStmt TokenKind = iota + 1
+	tkSQLStmt tokenKind = iota + 1
 	tkIf
 	tkElif
 	tkElse
@@ -18,8 +18,9 @@ const (
 	tkEndOfProgram
 )
 
+// Token holds the information of the token
 type Token struct {
-	kind      TokenKind
+	kind      tokenKind
 	str       string
 	value     string /* for Bind */
 	condition string /* for IF/ELIF */

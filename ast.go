@@ -17,6 +17,7 @@ const (
 	ndEndOfProgram
 )
 
+// Tree is a component of an abstract syntax tree
 type Tree struct {
 	Kind  nodeKind
 	Left  *Tree
@@ -160,7 +161,7 @@ func stmt(tokens []Token, index *int) (*Tree, error) {
 }
 
 //tokenが所望のものか調べる。一致していればインデックスを一つ進める
-func consume(tokens []Token, index *int, kind TokenKind) bool {
+func consume(tokens []Token, index *int, kind tokenKind) bool {
 	//println("str: ", tokens[*index].str, "kind: ", tokens[*index].kind, "want kind: ", kind)
 	if tokens[*index].kind == kind {
 		// TkEndOfPraogramでインクリメントしてしまうと
