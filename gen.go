@@ -5,8 +5,7 @@ import (
 	"reflect"
 )
 
-// 抽象構文木から目標文字列を生成
-// バインド抽出は別のパスにする
+// 抽象構文木からトークン列を生成
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
 func gen(trees *Tree, params map[string]interface{}) ([]Token, error) {

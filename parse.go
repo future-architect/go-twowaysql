@@ -11,8 +11,8 @@ type state struct {
 	query      string
 }
 
-func (t *Twowaysql) parse() (state, error) {
-	tokens, err := tokinize(t.query)
+func (t *Twowaysql) parse(query string, params map[string]interface{}) (state, error) {
+	tokens, err := tokinize(query)
 	if err != nil {
 		return state{}, err
 	}
@@ -21,18 +21,18 @@ func (t *Twowaysql) parse() (state, error) {
 		return state{}, err
 	}
 
-	generatedTokens, err := gen(tree, t.params)
+	generatedTokens, err := gen(tree, params)
 	if err != nil {
 		return state{}, err
 	}
 
-	query := buildQuery(generatedTokens)
+	convertedQuery := buildQuery(generatedTokens)
 	binds := retrieveBinds(generatedTokens)
 
 	return state{
 		tokens:     generatedTokens,
 		bindsValue: binds,
-		query:      query,
+		query:      convertedQuery,
 	}, nil
 
 }
