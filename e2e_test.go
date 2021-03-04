@@ -2,15 +2,15 @@ package twowaysql
 
 import (
 	"context"
-	"database/sql"
 	"testing"
 
+	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
 )
 
 func TestSelect(t *testing.T) {
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	db, err := sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	defer db.Close()
 	if err != nil {
 		t.Error(err)
@@ -20,11 +20,10 @@ func TestSelect(t *testing.T) {
 
 	ctx := context.Background()
 
-	var people []Person
+	people := []Person{}
 	var params = map[string]interface{}{"maxEmpNo": 3, "deptNo": 10}
 
-	// 式言語に対応していないためif trueとしている
-	err = tw.Select(&people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/'1' /* END */`, params).Run(ctx)
+	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/'1' /* END */`, params)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}
@@ -38,7 +37,7 @@ func TestSelect(t *testing.T) {
 	}
 
 	if !match(people, expected) {
-		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
+		t.Errorf("\nexpected:\n%v\nbut got\n%v\n", expected, people)
 	}
 }
 
