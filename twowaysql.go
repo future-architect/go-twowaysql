@@ -40,9 +40,6 @@ func (t *Twowaysql) Generate(query string, params map[string]interface{}) (strin
 		}
 	}
 
-	//適したplace holderに変換
-	st.query = t.db.Rebind(st.query)
-
 	return st.query, bindParams, nil
 
 }
@@ -55,6 +52,9 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 		return err
 	}
 
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
+
 	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
 
 }
@@ -66,6 +66,9 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 	if err != nil {
 		return err
 	}
+
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.Select(inputStructs, convertedQuery, bindParams...)
 	//fmt.Println("rv", rv)
@@ -80,6 +83,9 @@ func (t *Twowaysql) Exec(query string, params map[string]interface{}) (sql.Resul
 		return nil, err
 	}
 
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
+
 	return t.db.Exec(convertedQuery, bindParams...)
 }
 
@@ -90,6 +96,9 @@ func (t *Twowaysql) ExecContext(ctx context.Context, query string, params map[st
 	if err != nil {
 		return nil, err
 	}
+
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.ExecContext(ctx, convertedQuery, bindParams...)
 }
