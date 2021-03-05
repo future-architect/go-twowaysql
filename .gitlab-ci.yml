@@ -1,9 +1,9 @@
 image: golang:1.16
 
-variable:
+variables:
   REPO_NAME: gitlab.com/osaki-lab/twowaysql
 
-stage:
+stages:
   - build
   - test
 
