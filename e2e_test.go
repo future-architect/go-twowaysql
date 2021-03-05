@@ -15,6 +15,8 @@ type Person struct {
 }
 
 func TestE2E(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
 	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	defer db.Close()
@@ -60,6 +62,33 @@ func TestE2E(t *testing.T) {
 	if !match(people, expected) {
 		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
 	}
+
+	params = map[string]interface{}{"EmpNo": 2, "deptNo": 11}
+	_, err = tw.ExecContext(ctx, `UPDATE persons SET dept_no = /*deptNo*/1 WHERE employee_no = /*EmpNo*/1`, params)
+	if err != nil {
+		t.Fatalf("exec: failed: %v", err)
+	}
+	people = []Person{}
+	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE dept_no = 11`, nil)
+	if err != nil {
+		t.Fatalf("select: failed: %v", err)
+	}
+	// 元に戻す。本当はトランザクションのラッパーを実装するべきかも
+	_, err = tw.ExecContext(ctx, `UPDATE persons SET dept_no = 11 WHERE employee_no = /*EmpNo*/1`, params)
+	if err != nil {
+		t.Fatalf("exec: failed: %v", err)
+	}
+	expected = []Person{
+		{
+			FirstName: "Malvina",
+			LastName:  "FitzSimons",
+			Email:     "malvinafitzsimons@example.com",
+		},
+	}
+	if !match(people, expected) {
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
+	}
+
 }
 
 func match(p1, p2 []Person) bool {
