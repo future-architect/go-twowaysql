@@ -72,13 +72,26 @@ func tokinize(str string) ([]token, error) {
 			}
 			// */がなければ不正なフォーマット
 			if str[index:index+2] != "*/" {
-				return []token{}, errors.New("can not tokenize")
+				return []token{}, errors.New("Comment enclosing characters do not match")
 			}
 			index += 2
 			if tok.kind == 0 {
 				tok.kind = tkBind
-				for index < length && str[index] != ' ' {
+				if quote := str[index : index+1]; quote == `'` || quote == `"` {
+					// 文字列が続いている。
+					// 実装汚い...
 					index++
+					for index < length && str[index:index+1] != quote {
+						index++
+					}
+					if str[index:index+1] != quote {
+						return nil, errors.New("Enclosing characters do not match")
+					}
+					index++
+				} else {
+					for index < length && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
+						index++
+					}
 				}
 			}
 

@@ -3,7 +3,7 @@ package twowaysql
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -36,7 +36,7 @@ func (t *Twowaysql) Generate(query string, params map[string]interface{}) (strin
 		if elem, ok := params[bind]; ok {
 			bindParams = append(bindParams, elem)
 		} else {
-			return "", nil, errors.New("no parameter that matches the bind value")
+			return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", bind)
 		}
 	}
 
@@ -73,7 +73,7 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 }
 
 // Exec is a thin wrapper around db.Exec in the sqlx package.
-func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
+func (t *Twowaysql) Exec(query string, params map[string]interface{}) (sql.Result, error) {
 
 	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
@@ -84,7 +84,7 @@ func (t *Twowaysql) Exec(inputStructs interface{}, query string, params map[stri
 }
 
 // ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
-func (t *Twowaysql) ExecContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) (sql.Result, error) {
+func (t *Twowaysql) ExecContext(ctx context.Context, query string, params map[string]interface{}) (sql.Result, error) {
 
 	convertedQuery, bindParams, err := t.Generate(query, params)
 	if err != nil {
