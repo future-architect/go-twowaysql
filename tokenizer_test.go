@@ -33,6 +33,95 @@ func TestTokenize(t *testing.T) {
 			},
 		},
 		{
+			name:  "bind  space 1",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */"Jeff Dean"`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "bind  space 2",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */'Jeff Dean'`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "bind  space 3",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */"Jeff Dean" AND deptNo < 10`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ` AND deptNo < 10`,
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "insert",
+			input: `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*EmpNo*/1, /*deptNo*/1)`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  "INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(",
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*EmpNo*/",
+					value: "EmpNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ", ",
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*deptNo*/",
+					value: "deptNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ")",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
 			name:  "if",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
 			want: []token{
@@ -219,19 +308,35 @@ func TestTokenize(t *testing.T) {
 }
 func TestTokenizeShouldReturnError(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name      string
+		input     string
+		wantError string
 	}{
 		{
-			name:  "bad comment format",
-			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true / AND dept_no = 1",
+			name:      "bad comment format",
+			input:     "SELECT * FROM person WHERE employee_no < 1000 /* IF true / AND dept_no = 1",
+			wantError: "Comment enclosing characters do not match",
+		},
+		{
+			name:      "Enclosing characters not match 1",
+			input:     `SELECT * FROM person WHERE employee_no < /* firstName */"Jeff Dean AND dept_no = 1`,
+			wantError: "Enclosing characters do not match",
+		},
+		{
+			name:      "Enclosing characters not match 2",
+			input:     `SELECT * FROM person WHERE employee_no < /* firstName */"Jeff Dean' AND dept_no = 1`,
+			wantError: "Enclosing characters do not match",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := tokinize(tt.input); err == nil {
-				t.Error("Should Error")
+			if _, err := tokinize(tt.input); err == nil || err.Error() != tt.wantError {
+				if err == nil {
+					t.Error("Should Error")
+				} else if err.Error() != tt.wantError {
+					t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.wantError, err.Error())
+				}
 			}
 		})
 	}
