@@ -1,0 +1,25 @@
+image: golang:1.16
+
+variable:
+  REPO_NAME: gitlab.com/osaki-lab/twowaysql
+
+stage:
+  - build
+  - test
+
+before_script:
+  - mkidir -p /go/src/gitlab.com/osaki-lab/
+  - cp -fr ../twowaysql /go/src/gitlab.com/osaki-lab/ 
+  - cd /go/src/gitlab.com/osaki-lab/twowaysql
+
+build:
+  stage: build
+  script:
+    - go build
+  
+test:
+  stage: test
+  script:
+    - go test
+  dependencies:
+    - build
