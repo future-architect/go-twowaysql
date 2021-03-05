@@ -33,8 +33,26 @@ func TestTokenize(t *testing.T) {
 			},
 		},
 		{
-			name:  "bind  space",
+			name:  "bind  space 1",
 			input: `SELECT * FROM person WHERE first_name = /* firstName */"Jeff Dean"`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "bind  space 2",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */'Jeff Dean'`,
 			want: []token{
 				{
 					kind: tkSQLStmt,
@@ -237,19 +255,30 @@ func TestTokenize(t *testing.T) {
 }
 func TestTokenizeShouldReturnError(t *testing.T) {
 	tests := []struct {
-		name  string
-		input string
+		name      string
+		input     string
+		wantError string
 	}{
 		{
-			name:  "bad comment format",
-			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true / AND dept_no = 1",
+			name:      "bad comment format",
+			input:     "SELECT * FROM person WHERE employee_no < 1000 /* IF true / AND dept_no = 1",
+			wantError: "Comment enclosing characters do not match",
+		},
+		{
+			name:      "Enclosing characters not match",
+			input:     `SELECT * FROM person WHERE employee_no < /* firstName */"Jeff Dean AND dept_no = 1`,
+			wantError: "Enclosing characters do not match",
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := tokinize(tt.input); err == nil {
-				t.Error("Should Error")
+			if _, err := tokinize(tt.input); err == nil || err.Error() != tt.wantError {
+				if err == nil {
+					t.Error("Should Error")
+				} else if err.Error() != tt.wantError {
+					t.Errorf("Doesn't Match expected: %v, but got: %v\n", tt.wantError, err.Error())
+				}
 			}
 		})
 	}
