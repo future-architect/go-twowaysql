@@ -114,6 +114,56 @@ func TestCondition(t *testing.T) {
 			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF nil */ AND dept_no = 1 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000`,
 		},
+		{
+			name:  "if equal true int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo === 15 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if equal false int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo === 10 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if not equal true int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF maxEmpNo !== 15 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if not equal false int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF maxEmpNo !== 200 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if equal true string",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name === "HR" */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if equal false string",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name = "GA" */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if less than true int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo < 100 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if less than false int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo < 10 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
+		{
+			name:  "if more than true int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo > 10 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+		},
+		{
+			name:  "if more than false int",
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF deptNo > 100 */ AND dept_no = 1 /* END */`,
+			want:  `SELECT * FROM person WHERE employee_no < 1000`,
+		},
 	}
 	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
 	for _, tt := range tests {
