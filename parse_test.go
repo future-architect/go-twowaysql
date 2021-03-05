@@ -131,7 +131,7 @@ func TestCondition(t *testing.T) {
 		},
 		{
 			name:  "if not equal false int",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF maxEmpNo !== 200 */ AND dept_no = 1 /* END */`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF maxEmpNo !== 2000 */ AND dept_no = 1 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000`,
 		},
 		{
@@ -141,7 +141,7 @@ func TestCondition(t *testing.T) {
 		},
 		{
 			name:  "if equal false string",
-			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name = "GA" */ AND dept_no = 1 /* END */`,
+			input: `SELECT * FROM person WHERE employee_no < 1000 /* IF name === "GA" */ AND dept_no = 1 /* END */`,
 			want:  `SELECT * FROM person WHERE employee_no < 1000`,
 		},
 		{

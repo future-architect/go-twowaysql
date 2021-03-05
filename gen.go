@@ -1,8 +1,9 @@
 package twowaysql
 
 import (
-	"fmt"
 	"reflect"
+
+	"github.com/robertkrimen/otto"
 )
 
 // 抽象構文木からトークン列を生成
@@ -63,24 +64,23 @@ func genInner(node *tree, params map[string]interface{}) ([]token, error) {
 // TODO: 式言語?に対応する
 // 現状は/* If condition */のconditionがtruthyかどうか判別している。
 // notに対応した方がいいだろうか?
-func evalCondition(value string, params map[string]interface{}) (bool, error) {
-	//テスト用
-	if value == "true" {
-		return true, nil
-	}
-	if value == "false" {
-		return false, nil
-	}
-	var val string
-	//log.Println("val:", val)
-	if elem, ok := params[value]; ok {
-		if truth, ok := isTrue(elem); ok {
-			return truth, nil
+func evalCondition(condition string, params map[string]interface{}) (bool, error) {
+	vm := otto.New()
+	for key, value := range params {
+		err := vm.Set(key, value)
+		if err != nil {
+			return false, err
 		}
-		return false, fmt.Errorf("IF/ELIF can not use %v", elem)
 	}
-	return false, fmt.Errorf("invalid condition %v", val)
-	//return strings.Contains(str, "true")
+	result, err := vm.Run(condition)
+	if err != nil {
+		return false, err
+	}
+	truth, err := result.ToBoolean()
+	if err != nil {
+		return false, err
+	}
+	return truth, nil
 }
 
 // IsTrue reports whether the value is 'true', in the sense of not the zero of its type,
