@@ -62,8 +62,6 @@ func genInner(node *tree, params map[string]interface{}) ([]token, error) {
 
 // /* If ... */ /* Elif ... */の条件を評価する
 // TODO: 式言語?に対応する
-// 現状は/* If condition */のconditionがtruthyかどうか判別している。
-// notに対応した方がいいだろうか?
 func evalCondition(condition string, params map[string]interface{}) (bool, error) {
 	vm := otto.New()
 	for key, value := range params {
