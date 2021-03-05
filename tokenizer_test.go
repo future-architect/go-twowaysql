@@ -33,6 +33,24 @@ func TestTokenize(t *testing.T) {
 			},
 		},
 		{
+			name:  "bind  space",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */"Jeff Dean"`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
 			name:  "if",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
 			want: []token{
