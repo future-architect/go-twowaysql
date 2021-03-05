@@ -69,6 +69,59 @@ func TestTokenize(t *testing.T) {
 			},
 		},
 		{
+			name:  "bind  space 3",
+			input: `SELECT * FROM person WHERE first_name = /* firstName */"Jeff Dean" AND deptNo < 10`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  `SELECT * FROM person WHERE first_name = `,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/* firstName */",
+					value: "firstName",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ` AND deptNo < 10`,
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
+			name:  "insert",
+			input: `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*EmpNo*/1, /*deptNo*/1)`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  "INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(",
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*EmpNo*/",
+					value: "EmpNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ", ",
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*deptNo*/",
+					value: "deptNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  ")",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
+		{
 			name:  "if",
 			input: "SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1/* END */",
 			want: []token{
@@ -265,8 +318,13 @@ func TestTokenizeShouldReturnError(t *testing.T) {
 			wantError: "Comment enclosing characters do not match",
 		},
 		{
-			name:      "Enclosing characters not match",
+			name:      "Enclosing characters not match 1",
 			input:     `SELECT * FROM person WHERE employee_no < /* firstName */"Jeff Dean AND dept_no = 1`,
+			wantError: "Enclosing characters do not match",
+		},
+		{
+			name:      "Enclosing characters not match 2",
+			input:     `SELECT * FROM person WHERE employee_no < /* firstName */"Jeff Dean' AND dept_no = 1`,
 			wantError: "Enclosing characters do not match",
 		},
 	}

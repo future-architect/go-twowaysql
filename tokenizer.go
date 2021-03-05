@@ -89,7 +89,7 @@ func tokinize(str string) ([]token, error) {
 					}
 					index++
 				} else {
-					for index < length && str[index] != ' ' {
+					for index < length && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
 						index++
 					}
 				}

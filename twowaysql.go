@@ -3,7 +3,7 @@ package twowaysql
 import (
 	"context"
 	"database/sql"
-	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 
@@ -36,7 +36,7 @@ func (t *Twowaysql) Generate(query string, params map[string]interface{}) (strin
 		if elem, ok := params[bind]; ok {
 			bindParams = append(bindParams, elem)
 		} else {
-			return "", nil, errors.New("no parameter that matches the bind value")
+			return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", bind)
 		}
 	}
 
