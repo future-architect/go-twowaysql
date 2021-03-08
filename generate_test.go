@@ -30,12 +30,20 @@ func TestGenerate(t *testing.T) {
 				12,
 			},
 		},
+		{
+			name:      "insert",
+			input:     `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*maxEmpNo*/1, /*deptNo*/1)`,
+			wantQuery: `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(?/*maxEmpNo*/, ?/*deptNo*/)`,
+			wantParams: []interface{}{
+				3,
+				12,
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			tw := New(nil)
-			if gotQuery, gotParams, err := tw.Generate(tt.input, params); err != nil || gotQuery != tt.wantQuery || !interfaceSliceEqual(gotParams, tt.wantParams) {
+			if gotQuery, gotParams, err := Generate(tt.input, params); err != nil || gotQuery != tt.wantQuery || !interfaceSliceEqual(gotParams, tt.wantParams) {
 				if err != nil {
 					t.Error(err)
 				}
