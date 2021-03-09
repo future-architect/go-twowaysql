@@ -106,7 +106,7 @@ func TestEval(t *testing.T) {
 		},
 		{
 			name:      "in bind string",
-			input:     `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 AND /* IF int_list !== null */  person.gender in /*int_list*/(3,5,7) /* END */`,
+			input:     `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 /* IF int_list !== null */ AND  person.gender in /*int_list*/(3,5,7) /* END */`,
 			wantQuery: `SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/`,
 			wantParams: []interface{}{
 				3,
