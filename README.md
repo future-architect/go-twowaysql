@@ -38,7 +38,7 @@ func main() {
 
     var people []Person
     var params = map[string]interface{}{"maxEmpNo": 2000, "deptNo":15} 
-    err := db.Select(&people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF exists(deptNo)*/ AND dept_no = /*deptNo*/'1'`).Run(ctx, params)
+    err := db.SelectContext(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1`, params)
     if err != nil {
     	log.Fatalf("select failed: %v", err)
     }
