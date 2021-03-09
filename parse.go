@@ -1,119 +1,80 @@
 package twowaysql
 
 import (
-	"bytes"
-	"fmt"
-	"strings"
-	"unicode"
+	"github.com/robertkrimen/otto"
 )
 
-// Parse returns converted query and bind value
-// The return value is expected to be used to issue queries to the database
-func Parse(inputQuery string, inputParams map[string]interface{}) (string, []interface{}, error) {
-	tokens, err := tokinize(inputQuery)
+// 抽象構文木からトークン列を生成
+// 左部分木、右部分木と辿る
+// 現状右部分木を持つのはif, elif, elseだけ?
+func parse(trees *tree, params map[string]interface{}) ([]token, error) {
+	res, err := genInner(trees, params)
 	if err != nil {
-		return "", nil, err
+		return []token{}, err
 	}
-	tree, err := ast(tokens)
-	if err != nil {
-		return "", nil, err
-	}
-
-	generatedTokens, err := gen(tree, inputParams)
-	if err != nil {
-		return "", nil, err
-	}
-
-	query, params, err := build(generatedTokens, inputParams)
-	if err != nil {
-		return "", nil, err
-	}
-
-	return arrageWhiteSpace(query), params, nil
+	return res, nil
 }
 
-func build(tokens []token, inputParams map[string]interface{}) (string, []interface{}, error) {
-	var b strings.Builder
-	var params []interface{}
-	var err error
+func genInner(node *tree, params map[string]interface{}) ([]token, error) {
+	if node == nil {
+		return []token{}, nil
+	}
 
-	for _, token := range tokens {
-		if token.kind == tkBind {
-			if elem, ok := inputParams[token.value]; ok {
-				switch slice := elem.(type) {
-				case []string:
-					token.str, err = bindLiterals(token.str, len(slice))
-					if err != nil {
-						return "", nil, err
-					}
-					for _, value := range slice {
-						params = append(params, value)
-					}
-				case []int:
-					token.str, err = bindLiterals(token.str, len(slice))
-					if err != nil {
-						return "", nil, err
-					}
-					for _, value := range slice {
-						params = append(params, value)
-					}
-				default:
-					params = append(params, elem)
-				}
-			} else {
-				return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", token.value)
-			}
-		}
-		_, err = b.WriteString(token.str)
+	//行きがけ
+
+	//左部分木に行く
+	leftStr, err := genInner(node.Left, params)
+	if err != nil {
+		return []token{}, err
+	}
+
+	//左部分木から戻ってきた
+
+	//右部分木に行く
+	rightStr, err := genInner(node.Right, params)
+	if err != nil {
+		return []token{}, err
+	}
+
+	//右部分木から戻ってきた
+	// 何を返すか
+	// 基本的に左部分木
+	// If Elifの場合は条件次第
+	switch kind := node.Kind; kind {
+	case ndSQLStmt, ndBind:
+		//めちゃめちゃ実行効率悪い気が...
+		return append([]token{*node.Token}, leftStr...), nil
+	case ndIf, ndElif:
+		truth, err := evalCondition(node.Token.condition, params)
 		if err != nil {
-			return "", nil, err
+			return []token{}, err
 		}
+		if truth {
+			return leftStr, nil
+		}
+		return rightStr, nil
+	default:
+		return leftStr, nil
 	}
-	return b.String(), params, nil
 }
 
-// ?/* ... */ -> (?, ?, ?)/* ... */みたいにする
-func bindLiterals(str string, number int) (string, error) {
-	str = strings.TrimLeftFunc(str, func(r rune) bool {
-		return r != unicode.SimpleFold('/')
-	})
-	var b strings.Builder
-	_, err := b.WriteRune('(')
-	if err != nil {
-		return "", err
-	}
-	for i := 0; i < number; i++ {
-		_, err := b.WriteRune('?')
+// /* If ... */ /* Elif ... */の条件を評価する
+// TODO: 式言語?に対応する
+func evalCondition(condition string, params map[string]interface{}) (bool, error) {
+	vm := otto.New()
+	for key, value := range params {
+		err := vm.Set(key, value)
 		if err != nil {
-			return "", err
-		}
-		if i != number-1 {
-			_, err := b.WriteString(", ")
-			if err != nil {
-				return "", err
-			}
+			return false, err
 		}
 	}
-	_, err = b.WriteRune(')')
+	result, err := vm.Run(condition)
 	if err != nil {
-		return "", err
+		return false, err
 	}
-
-	return fmt.Sprint(b.String(), str), nil
-}
-
-// 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
-// 単純な空白を想定。 -> issue: よりロバストな実装
-func arrageWhiteSpace(str string) string {
-	ret := ""
-	buff := bytes.NewBufferString(ret)
-	for i := 0; i < len(str); i++ {
-		if i < len(str)-1 && str[i] == ' ' && str[i+1] == ' ' {
-			continue
-		}
-		buff.WriteByte(str[i])
+	truth, err := result.ToBoolean()
+	if err != nil {
+		return false, err
 	}
-	ret = buff.String()
-	ret = strings.TrimLeft(ret, " ")
-	return strings.TrimRight(ret, " ")
+	return truth, nil
 }
