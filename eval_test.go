@@ -121,7 +121,7 @@ func TestGenerate(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if query, params, err := Generate(tt.input, params); err != nil || query != tt.wantQuery || !interfaceSliceEqual(params, tt.wantParams) {
+			if query, params, err := Eval(tt.input, params); err != nil || query != tt.wantQuery || !interfaceSliceEqual(params, tt.wantParams) {
 				if err != nil {
 					t.Error(err)
 				}
@@ -231,7 +231,7 @@ func TestCondition(t *testing.T) {
 	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if query, _, err := Generate(tt.input, params); err != nil || query != tt.want {
+			if query, _, err := Eval(tt.input, params); err != nil || query != tt.want {
 				if err != nil {
 					t.Error(err)
 				}
@@ -276,7 +276,7 @@ func TestGenerateAbnormal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if query, params, err := Generate(tt.input, nil); err == nil || err.Error() != tt.wantError {
+			if query, params, err := Eval(tt.input, nil); err == nil || err.Error() != tt.wantError {
 				if err == nil {
 					t.Error("query", query)
 					t.Error("params", params)

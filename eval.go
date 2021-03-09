@@ -7,9 +7,9 @@ import (
 	"unicode"
 )
 
-// Generate returns converted query and bind value
+// Eval returns converted query and bind value
 // The return value is expected to be used to issue queries to the database
-func Generate(inputQuery string, inputParams map[string]interface{}) (string, []interface{}, error) {
+func Eval(inputQuery string, inputParams map[string]interface{}) (string, []interface{}, error) {
 	tokens, err := tokinize(inputQuery)
 	if err != nil {
 		return "", nil, err
