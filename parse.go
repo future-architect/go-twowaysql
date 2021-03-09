@@ -32,26 +32,6 @@ func Parse(inputQuery string, inputParams map[string]interface{}) (string, []int
 	return arrageWhiteSpace(query), params, nil
 }
 
-// TkBindのvalueをtoken列から取り出す
-func retrieveBinds(tokens []token) []string {
-	var binds []string
-	for _, token := range tokens {
-		if token.kind == tkBind {
-			binds = append(binds, token.value)
-		}
-	}
-	return binds
-}
-
-func buildQuery(tokens []token) string {
-	var b strings.Builder
-	for _, token := range tokens {
-		b.WriteString(token.str)
-	}
-
-	return arrageWhiteSpace(b.String())
-}
-
 func build(tokens []token, inputParams map[string]interface{}) (string, []interface{}, error) {
 	var b strings.Builder
 	var params []interface{}
