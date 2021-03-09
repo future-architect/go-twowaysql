@@ -29,10 +29,10 @@ func TestSelect(t *testing.T) {
 		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
-	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 
 	tw := New(db)
 
@@ -89,10 +89,10 @@ func TestUpdate(t *testing.T) {
 		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
-	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 
 	tw := New(db)
 
@@ -103,7 +103,7 @@ func TestUpdate(t *testing.T) {
 	if err != nil {
 		t.Fatalf("exec: failed: %v", err)
 	}
-	var people = []Person{}
+	var people []Person
 	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE dept_no = 11`, nil)
 	if err != nil {
 		t.Fatalf("select: failed: %v", err)
@@ -138,10 +138,10 @@ func TestInsertAndDelete(t *testing.T) {
 		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
-	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 
 	tw := New(db)
 
@@ -153,7 +153,7 @@ func TestInsertAndDelete(t *testing.T) {
 		t.Fatalf("exec: failed: %v", err)
 	}
 
-	var people = []Person{}
+	var people []Person
 	err = tw.SelectContext(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE dept_no = /*deptNo*/0`, params)
 	if err != nil {
 		t.Fatalf("select: failed: %v", err)
