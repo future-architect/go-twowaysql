@@ -312,7 +312,7 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind:  tkBind,
-					str:   "/*gender_list*/('M')",
+					str:   "?/*gender_list*/",
 					value: "gender_list",
 				},
 				{

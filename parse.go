@@ -91,7 +91,7 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 
 // ?/* ... */ -> (?, ?, ?)/* ... */みたいにする
 func bindLiterals(str string, number int) (string, error) {
-	str = strings.TrimRightFunc(str, func(r rune) bool {
+	str = strings.TrimLeftFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
 	})
 	var b strings.Builder
