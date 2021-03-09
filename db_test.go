@@ -19,10 +19,10 @@ func TestDBConnection(t *testing.T) {
 		db, err = sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
-	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
 	}
+	defer db.Close()
 
 	ctx := context.Background()
 

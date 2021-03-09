@@ -77,7 +77,19 @@ func tokinize(str string) ([]token, error) {
 			index += 2
 			if tok.kind == 0 {
 				tok.kind = tkBind
-				if quote := str[index]; quote == '\'' || quote == '"' {
+				if quote := str[index]; quote == '(' {
+					// /* ... */( ... )
+					index++
+					for index < length && str[index] != ')' {
+						index++
+					}
+					if str[index] != ')' {
+						return nil, errors.New("Enclosing characters do not match")
+					}
+					index++
+				} else if quote := str[index]; quote == '\'' || quote == '"' {
+					// /* ... */"..."
+					// /* ... */'...'
 					// 文字列が続いている。
 					// 実装汚い...
 					index++
