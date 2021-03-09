@@ -96,17 +96,28 @@ func TestParse(t *testing.T) {
 			},
 		},
 		{
-			name:      "in bind",
-			input:     `SELECT * FROM person WHERE /* IF gender_list !== null */ AND person.gender in /*gender_list*/('M') /* END */`,
-			wantQuery: `SELECT * FROM person WHERE AND person.gender in (?, ?)/*gender_list*/`,
+			name:      "in bind string",
+			input:     `SELECT * FROM person WHERE /* IF gender_list !== null */ person.gender in /*gender_list*/('M') /* END */`,
+			wantQuery: `SELECT * FROM person WHERE person.gender in (?, ?)/*gender_list*/`,
 			wantParams: []interface{}{
 				"M",
 				"F",
 			},
 		},
+		{
+			name:      "in bind string",
+			input:     `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 AND /* IF int_list !== null */  person.gender in /*int_list*/(3,5,7) /* END */`,
+			wantQuery: `SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/`,
+			wantParams: []interface{}{
+				3,
+				1,
+				2,
+				3,
+			},
+		},
 	}
 
-	var params = map[string]interface{}{"name": "Jeff", "maxEmpNo": 3, "deptNo": 12, "gender_list": []string{"M", "F"}}
+	var params = map[string]interface{}{"name": "Jeff", "maxEmpNo": 3, "deptNo": 12, "gender_list": []string{"M", "F"}, "int_list": []int{1, 2, 3}}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
@@ -118,7 +129,7 @@ func TestParse(t *testing.T) {
 					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantQuery, got.query)
 				}
 				if !interfaceSliceEqual(got.params, tt.wantParams) {
-					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantParams, got.params)
+					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, got.params)
 				}
 			}
 		})

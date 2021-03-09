@@ -66,7 +66,8 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 	for _, token := range tokens {
 		if token.kind == tkBind {
 			if elem, ok := inputParams[token.value]; ok {
-				if slice, ok := elem.([]string); ok {
+				switch slice := elem.(type) {
+				case []string:
 					token.str, err = bindLiterals(token.str, len(slice))
 					if err != nil {
 						return "", nil, err
@@ -74,7 +75,15 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 					for _, value := range slice {
 						params = append(params, value)
 					}
-				} else {
+				case []int:
+					token.str, err = bindLiterals(token.str, len(slice))
+					if err != nil {
+						return "", nil, err
+					}
+					for _, value := range slice {
+						params = append(params, value)
+					}
+				default:
 					params = append(params, elem)
 				}
 			} else {
