@@ -7,35 +7,29 @@ import (
 	"unicode"
 )
 
-type state struct {
-	query  string
-	params []interface{}
-}
-
-func Parse(inputQuery string, inputParams map[string]interface{}) (state, error) {
+// Parse returns converted query and bind value
+// The return value is expected to be used to issue queries to the database
+func Parse(inputQuery string, inputParams map[string]interface{}) (string, []interface{}, error) {
 	tokens, err := tokinize(inputQuery)
 	if err != nil {
-		return state{}, err
+		return "", nil, err
 	}
 	tree, err := ast(tokens)
 	if err != nil {
-		return state{}, err
+		return "", nil, err
 	}
 
 	generatedTokens, err := gen(tree, inputParams)
 	if err != nil {
-		return state{}, err
+		return "", nil, err
 	}
 
 	query, params, err := build(generatedTokens, inputParams)
 	if err != nil {
-		return state{}, err
+		return "", nil, err
 	}
 
-	return state{
-		query:  arrageWhiteSpace(query),
-		params: params,
-	}, nil
+	return arrageWhiteSpace(query), params, nil
 }
 
 // TkBindのvalueをtoken列から取り出す

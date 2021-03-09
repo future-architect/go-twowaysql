@@ -121,15 +121,15 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := Parse(tt.input, params); err != nil || got.query != tt.wantQuery || !interfaceSliceEqual(got.params, tt.wantParams) {
+			if query, params, err := Parse(tt.input, params); err != nil || query != tt.wantQuery || !interfaceSliceEqual(params, tt.wantParams) {
 				if err != nil {
 					t.Error(err)
 				}
-				if got.query != tt.wantQuery {
-					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantQuery, got.query)
+				if query != tt.wantQuery {
+					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantQuery, query)
 				}
-				if !interfaceSliceEqual(got.params, tt.wantParams) {
-					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, got.params)
+				if !interfaceSliceEqual(params, tt.wantParams) {
+					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, params)
 				}
 			}
 		})
@@ -231,11 +231,11 @@ func TestCondition(t *testing.T) {
 	var params = map[string]interface{}{"name": "HR", "maxEmpNo": 2000, "deptNo": 15, "checked": true, "uncheckd": false, "zero": 0, "nil": nil}
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := Parse(tt.input, params); err != nil || got.query != tt.want {
+			if query, _, err := Parse(tt.input, params); err != nil || query != tt.want {
 				if err != nil {
 					t.Error(err)
 				}
-				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, got.query)
+				t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.want, query)
 			}
 		})
 	}
@@ -276,9 +276,10 @@ func TestParseAbnormal(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := Parse(tt.input, nil); err == nil || err.Error() != tt.wantError {
+			if query, params, err := Parse(tt.input, nil); err == nil || err.Error() != tt.wantError {
 				if err == nil {
-					t.Error("got", got)
+					t.Error("query", query)
+					t.Error("params", params)
 					t.Errorf("should return error")
 				} else {
 					t.Errorf("\nexpected:\n%v\nbut got\n%v\n", tt.wantError, err.Error())
