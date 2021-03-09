@@ -284,8 +284,6 @@ func TestGenerateAbnormal(t *testing.T) {
 				} else {
 					t.Errorf("\nexpected:\n%v\nbut got\n%v\n", tt.wantError, err.Error())
 				}
-			} else {
-				t.Log(err)
 			}
 		})
 	}
