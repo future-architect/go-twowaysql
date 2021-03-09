@@ -293,6 +293,41 @@ func TestTokenize(t *testing.T) {
 				},
 			},
 		},
+		{
+			name:  "in bind",
+			input: `SELECT * FROM person WHERE /* IF gender_list !== null */ AND person.gender in /*gender_list*/('M') /* END */`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str:  "SELECT * FROM person WHERE ",
+				},
+				{
+					kind:      tkIf,
+					str:       "/* IF gender_list !== null */",
+					condition: "gender_list !== null",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  " AND person.gender in ",
+				},
+				{
+					kind:  tkBind,
+					str:   "/*gender_list*/('M')",
+					value: "gender_list",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  " ",
+				},
+				{
+					kind: tkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
