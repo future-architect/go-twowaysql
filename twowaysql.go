@@ -3,7 +3,6 @@ package twowaysql
 import (
 	"context"
 	"database/sql"
-	"fmt"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -18,28 +17,6 @@ func New(db *sqlx.DB) *Twowaysql {
 	return &Twowaysql{
 		db: db,
 	}
-}
-
-// Generate returns converted query and bind value
-// The return value is expected to be used to issue queries to the database
-func Generate(query string, params map[string]interface{}) (string, []interface{}, error) {
-
-	st, err := parse(query, params)
-	if err != nil {
-		return "", nil, err
-	}
-
-	var bindParams []interface{}
-	for _, bind := range st.bindsValue {
-		if elem, ok := params[bind]; ok {
-			bindParams = append(bindParams, elem)
-		} else {
-			return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", bind)
-		}
-	}
-
-	return st.query, bindParams, nil
-
 }
 
 // SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
