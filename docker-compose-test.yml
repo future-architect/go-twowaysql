@@ -1,0 +1,29 @@
+version: "3.8"
+services:
+  go:
+    build: .
+    environment: 
+      - POSTGRES_HOST=postgres
+    depends_on: 
+      - "db"
+    command: ["/usr/bin/wait-for-it", "db:5432", "--", "go", "test"]
+  
+  db:
+    image: postgres
+    container_name: postgres 
+    restart: always
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_INITDB_ARGS=--encoding=UTF-8
+      #- POSTGRES_DB=postgres
+    
+    ports:
+      - "5432:5432"
+    user: root 
+    volumes:
+      - ./postgres/init:/docker-entrypoint-initdb.d
+      - pg-data:/var/lib/pgdata
+volumes:
+  pg-data:
+    driver: local

@@ -2,6 +2,8 @@ package twowaysql
 
 import (
 	"context"
+	"fmt"
+	"os"
 	"testing"
 
 	"github.com/jmoiron/sqlx"
@@ -18,7 +20,15 @@ func TestSelect(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
 
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
 	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -70,7 +80,15 @@ func TestUpdate(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
 
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
 	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
@@ -111,7 +129,15 @@ func TestInsertAndDelete(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
 
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
 	defer db.Close()
 	if err != nil {
 		t.Fatal(err)
