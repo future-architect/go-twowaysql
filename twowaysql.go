@@ -4,8 +4,6 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
-	"strconv"
-	"strings"
 
 	"github.com/jmoiron/sqlx"
 )
@@ -24,9 +22,9 @@ func New(db *sqlx.DB) *Twowaysql {
 
 // Generate returns converted query and bind value
 // The return value is expected to be used to issue queries to the database
-func (t *Twowaysql) Generate(query string, params map[string]interface{}) (string, []interface{}, error) {
+func Generate(query string, params map[string]interface{}) (string, []interface{}, error) {
 
-	st, err := t.parse(query, params)
+	st, err := parse(query, params)
 	if err != nil {
 		return "", nil, err
 	}
@@ -40,9 +38,6 @@ func (t *Twowaysql) Generate(query string, params map[string]interface{}) (strin
 		}
 	}
 
-	//適したplace holderに変換
-	st.query = t.db.Rebind(st.query)
-
 	return st.query, bindParams, nil
 
 }
@@ -50,10 +45,13 @@ func (t *Twowaysql) Generate(query string, params map[string]interface{}) (strin
 // SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
 func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
 
-	convertedQuery, bindParams, err := t.Generate(query, params)
+	convertedQuery, bindParams, err := Generate(query, params)
 	if err != nil {
 		return err
 	}
+
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
 
@@ -62,10 +60,13 @@ func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{},
 // Select is a thin wrapper around db.Select in the sqlx package.
 func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
 
-	convertedQuery, bindParams, err := t.Generate(query, params)
+	convertedQuery, bindParams, err := Generate(query, params)
 	if err != nil {
 		return err
 	}
+
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.Select(inputStructs, convertedQuery, bindParams...)
 	//fmt.Println("rv", rv)
@@ -75,10 +76,13 @@ func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[st
 // Exec is a thin wrapper around db.Exec in the sqlx package.
 func (t *Twowaysql) Exec(query string, params map[string]interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := t.Generate(query, params)
+	convertedQuery, bindParams, err := Generate(query, params)
 	if err != nil {
 		return nil, err
 	}
+
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.Exec(convertedQuery, bindParams...)
 }
@@ -86,19 +90,13 @@ func (t *Twowaysql) Exec(query string, params map[string]interface{}) (sql.Resul
 // ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
 func (t *Twowaysql) ExecContext(ctx context.Context, query string, params map[string]interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := t.Generate(query, params)
+	convertedQuery, bindParams, err := Generate(query, params)
 	if err != nil {
 		return nil, err
 	}
 
-	return t.db.ExecContext(ctx, convertedQuery, bindParams...)
-}
+	//適したplace holderに変換
+	convertedQuery = t.db.Rebind(convertedQuery)
 
-// ?/* ... */ を $1/* ... */のような形に変換する。
-func convertPlaceHolder(str string) string {
-	count := strings.Count(str, "?")
-	for i := 0; i < count; i++ {
-		str = strings.Replace(str, "?", "$"+strconv.Itoa(i+1), 1)
-	}
-	return str
+	return t.db.ExecContext(ctx, convertedQuery, bindParams...)
 }
