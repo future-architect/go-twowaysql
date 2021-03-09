@@ -13,11 +13,11 @@ func ExampleEval() {
 
 	convertedQuery, getParams, _ := twowaysql.Eval(query, params)
 
-	fmt.Println("query:", convertedQuery)
-	fmt.Println("params:", getParams)
+	fmt.Println(convertedQuery)
+	fmt.Println(getParams)
 
 	// Output:
-	// query: SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/
-	// params: [3 1 2 3]
+	// SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/
+	// [3 1 2 3]
 
 }

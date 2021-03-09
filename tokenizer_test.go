@@ -295,11 +295,11 @@ func TestTokenize(t *testing.T) {
 		},
 		{
 			name:  "in bind",
-			input: `SELECT * FROM person WHERE /* IF gender_list !== null */ person.gender in /*gender_list*/('M') /* END */`,
+			input: `SELECT * FROM person /* IF gender_list !== null */ WHERE person.gender in /*gender_list*/('M') /* END */`,
 			want: []token{
 				{
 					kind: tkSQLStmt,
-					str:  "SELECT * FROM person WHERE ",
+					str:  "SELECT * FROM person ",
 				},
 				{
 					kind:      tkIf,
@@ -308,7 +308,7 @@ func TestTokenize(t *testing.T) {
 				},
 				{
 					kind: tkSQLStmt,
-					str:  " person.gender in ",
+					str:  " WHERE person.gender in ",
 				},
 				{
 					kind:  tkBind,

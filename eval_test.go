@@ -2,7 +2,7 @@ package twowaysql
 
 import "testing"
 
-func TestGenerate(t *testing.T) {
+func TestEval(t *testing.T) {
 	tests := []struct {
 		name       string
 		input      string
@@ -97,7 +97,7 @@ func TestGenerate(t *testing.T) {
 		},
 		{
 			name:      "in bind string",
-			input:     `SELECT * FROM person WHERE /* IF gender_list !== null */ person.gender in /*gender_list*/('M') /* END */`,
+			input:     `SELECT * FROM person /* IF gender_list !== null */ WHERE person.gender in /*gender_list*/('M') /* END */`,
 			wantQuery: `SELECT * FROM person WHERE person.gender in (?, ?)/*gender_list*/`,
 			wantParams: []interface{}{
 				"M",
