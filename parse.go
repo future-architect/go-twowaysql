@@ -11,7 +11,7 @@ type state struct {
 	query      string
 }
 
-func (t *Twowaysql) parse(query string, params map[string]interface{}) (state, error) {
+func parse(query string, params map[string]interface{}) (state, error) {
 	tokens, err := tokinize(query)
 	if err != nil {
 		return state{}, err
@@ -26,13 +26,10 @@ func (t *Twowaysql) parse(query string, params map[string]interface{}) (state, e
 		return state{}, err
 	}
 
-	convertedQuery := buildQuery(generatedTokens)
-	binds := retrieveBinds(generatedTokens)
-
 	return state{
 		tokens:     generatedTokens,
-		bindsValue: binds,
-		query:      convertedQuery,
+		bindsValue: retrieveBinds(generatedTokens),
+		query:      buildQuery(generatedTokens),
 	}, nil
 
 }
@@ -70,6 +67,5 @@ func arrageWhiteSpace(str string) string {
 	}
 	ret = buff.String()
 	ret = strings.TrimLeft(ret, " ")
-	ret = strings.TrimRight(ret, " ")
-	return ret
+	return strings.TrimRight(ret, " ")
 }

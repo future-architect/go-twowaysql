@@ -77,14 +77,14 @@ func tokinize(str string) ([]token, error) {
 			index += 2
 			if tok.kind == 0 {
 				tok.kind = tkBind
-				if quote := str[index : index+1]; quote == `'` || quote == `"` {
+				if quote := str[index]; quote == '\'' || quote == '"' {
 					// 文字列が続いている。
 					// 実装汚い...
 					index++
-					for index < length && str[index:index+1] != quote {
+					for index < length && str[index] != quote {
 						index++
 					}
-					if str[index:index+1] != quote {
+					if str[index] != quote {
 						return nil, errors.New("Enclosing characters do not match")
 					}
 					index++
@@ -97,10 +97,8 @@ func tokinize(str string) ([]token, error) {
 
 			tok.str = str[start:index]
 			switch tok.kind {
-			case tkIf:
-				tok.condition = retrieveConditionFromIf(tok.str)
-			case tkElif:
-				tok.condition = retrieveConditionFromElif(tok.str)
+			case tkIf, tkElif:
+				tok.condition = retrieveCondition(tok.kind, tok.str)
 			case tkBind:
 				tok.str = bindLiteral(tok.str)
 				tok.value = retrieveValue(tok.str)
@@ -129,8 +127,7 @@ func retrieveValue(str string) string {
 	var retStr string
 	retStr = strings.Trim(str, " ")
 	retStr = strings.TrimLeft(retStr, "?")
-	retStr = strings.TrimPrefix(retStr, "/*")
-	retStr = strings.TrimSuffix(retStr, "*/")
+	retStr = removeCommentSymbol(retStr)
 	return strings.Trim(retStr, " ")
 }
 
@@ -139,31 +136,27 @@ func bindLiteral(str string) string {
 	str = strings.TrimRightFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
 	})
-	str = "?" + str
-	return str
+	return "?" + str
 }
 
-// /* IF condition */ -> condtionを返す
-func retrieveConditionFromIf(str string) string {
+// /* (IF|ELIF) condition */ -> condtionを返す
+// kind must be tkIf or tkElif
+func retrieveCondition(kind tokenKind, str string) string {
 	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
-	str = strings.TrimPrefix(str, "IF")
-	str = strings.TrimLeft(str, " ")
-	return str
-}
-
-// /* ELIF condition */ -> condtionを返す
-func retrieveConditionFromElif(str string) string {
-	str = removeCommentSymbol(str)
-	str = strings.Trim(str, " ")
-	str = strings.TrimPrefix(str, "ELIF")
-	str = strings.TrimLeft(str, " ")
-	return str
+	switch kind {
+	case tkIf:
+		str = strings.TrimPrefix(str, "IF")
+	case tkElif:
+		str = strings.TrimPrefix(str, "ELIF")
+	default:
+		panic("kind must be tKIF or tkElif")
+	}
+	return strings.TrimLeft(str, " ")
 }
 
 // input: /*value*/ -> output: value
 func removeCommentSymbol(str string) string {
 	str = strings.TrimPrefix(str, "/*")
-	str = strings.TrimSuffix(str, "*/")
-	return str
+	return strings.TrimSuffix(str, "*/")
 }
