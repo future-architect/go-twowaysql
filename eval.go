@@ -143,5 +143,5 @@ func encode(dest map[string]interface{}, src interface{}) error {
 	enc := &encoder{
 		dest: dest,
 	}
-	return runtimescan.Encode(src, "map", enc)
+	return runtimescan.Encode(src, "twowaysql", enc)
 }
