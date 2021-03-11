@@ -5,7 +5,6 @@ import (
 	"testing"
 )
 
-//　課題: テストケースの準備(Treeの作成)に手間がかかる
 func TestAst(t *testing.T) {
 	tests := []struct {
 		name  string
@@ -19,7 +18,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeEmpty(),
+			want: wantEmpty,
 		},
 		{
 			name: "no comment",
@@ -32,7 +31,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeNoComment(),
+			want: wantNoComment,
 		},
 		{
 			name: "if",
@@ -58,7 +57,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeTreeIf(),
+			want: wantTreeIf,
 		},
 		{
 			name: "if and bind",
@@ -102,7 +101,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeTreeIfBind(),
+			want: wantTreeIfBind,
 		},
 		{
 			name: "if elif else",
@@ -145,7 +144,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeIfElifElse(),
+			want: wantIfElifElse,
 		},
 		{
 			name: "if nest",
@@ -204,7 +203,7 @@ func TestAst(t *testing.T) {
 					kind: tkEndOfProgram,
 				},
 			},
-			want: makeIfNest(),
+			want: wantIfNest,
 		},
 	}
 
@@ -298,17 +297,15 @@ func printWalkInner(t *tree) {
 }
 
 // テストの期待する結果を作成
-func makeEmpty() *tree {
-	return &tree{
+var (
+	wantEmpty = &tree{
 		Kind: ndEndOfProgram,
 		Token: &token{
 			kind: tkEndOfProgram,
 		},
 	}
-}
 
-func makeNoComment() *tree {
-	return &tree{
+	wantNoComment = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndEndOfProgram,
@@ -321,10 +318,8 @@ func makeNoComment() *tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000  AND dept_no = 1",
 		},
 	}
-}
 
-func makeTreeIf() *tree {
-	return &tree{
+	wantTreeIf = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndIf,
@@ -359,10 +354,8 @@ func makeTreeIf() *tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-}
 
-func makeTreeIfBind() *tree {
-	return &tree{
+	wantTreeIfBind = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndBind,
@@ -427,10 +420,9 @@ func makeTreeIfBind() *tree {
 			str:  "SELECT * FROM person WHERE employee_no < ",
 		},
 	}
-}
 
-func makeIfElifElse() *tree {
-	return &tree{
+
+	wantIfElifElse = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndIf,
@@ -493,11 +485,10 @@ func makeIfElifElse() *tree {
 			kind: tkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
-	}
-}
 
-func makeIfNest() *tree {
-	return &tree{
+	}
+
+	wantIfNest =  &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndIf,
@@ -589,4 +580,9 @@ func makeIfNest() *tree {
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-}
+
+)
+
+
+
+

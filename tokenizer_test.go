@@ -332,7 +332,7 @@ func TestTokenize(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := tokinize(tt.input); err != nil || !tokensEqual(tt.want, got) {
+			if got, err := tokenize(tt.input); err != nil || !tokensEqual(tt.want, got) {
 				if err != nil {
 					t.Error(err)
 				}
@@ -366,7 +366,7 @@ func TestTokenizeShouldReturnError(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if _, err := tokinize(tt.input); err == nil || err.Error() != tt.wantError {
+			if _, err := tokenize(tt.input); err == nil || err.Error() != tt.wantError {
 				if err == nil {
 					t.Error("Should Error")
 				} else if err.Error() != tt.wantError {

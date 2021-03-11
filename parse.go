@@ -8,11 +8,7 @@ import (
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
 func (t *tree) parse(params map[string]interface{}) ([]token, error) {
-	res, err := genInner(t, params)
-	if err != nil {
-		return []token{}, err
-	}
-	return res, nil
+	return  genInner(t, params)
 }
 
 func genInner(node *tree, params map[string]interface{}) ([]token, error) {
@@ -67,13 +63,16 @@ func evalCondition(condition string, params map[string]interface{}) (bool, error
 			return false, err
 		}
 	}
+
 	result, err := vm.Run(condition)
 	if err != nil {
 		return false, err
 	}
+
 	truth, err := result.ToBoolean()
 	if err != nil {
 		return false, err
 	}
+
 	return truth, nil
 }
