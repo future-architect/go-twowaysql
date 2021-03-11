@@ -94,7 +94,7 @@ func TestParse(t *testing.T) {
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if got, err := parse(tt.input, map[string]interface{}{}); err != nil || !tokensEqual(tt.want, got) {
+			if got, err := tt.input.parse(map[string]interface{}{}); err != nil || !tokensEqual(tt.want, got) {
 				if err != nil {
 					t.Error(err)
 				}

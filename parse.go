@@ -7,8 +7,8 @@ import (
 // 抽象構文木からトークン列を生成
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
-func parse(trees *tree, params map[string]interface{}) ([]token, error) {
-	res, err := genInner(trees, params)
+func (t *tree) parse(params map[string]interface{}) ([]token, error) {
+	res, err := genInner(t, params)
 	if err != nil {
 		return []token{}, err
 	}

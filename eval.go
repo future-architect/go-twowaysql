@@ -33,7 +33,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	generatedTokens, err := parse(tree, mapParams)
+	generatedTokens, err := tree.parse(mapParams)
 	if err != nil {
 		return "", nil, err
 	}
@@ -56,7 +56,7 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 			if elem, ok := inputParams[token.value]; ok {
 				switch slice := elem.(type) {
 				case []string:
-					token.str, err = bindLiterals(token.str, len(slice))
+					token.str = bindLiterals(token.str, len(slice))
 					if err != nil {
 						return "", nil, err
 					}
@@ -64,7 +64,7 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 						params = append(params, value)
 					}
 				case []int:
-					token.str, err = bindLiterals(token.str, len(slice))
+					token.str = bindLiterals(token.str, len(slice))
 					if err != nil {
 						return "", nil, err
 					}
@@ -78,42 +78,27 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 				return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", token.value)
 			}
 		}
-		_, err = b.WriteString(token.str)
-		if err != nil {
-			return "", nil, err
-		}
+		b.WriteString(token.str)
 	}
 	return b.String(), params, nil
 }
 
 // ?/* ... */ -> (?, ?, ?)/* ... */みたいにする
-func bindLiterals(str string, number int) (string, error) {
+func bindLiterals(str string, number int) string {
 	str = strings.TrimLeftFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
 	})
 	var b strings.Builder
-	_, err := b.WriteRune('(')
-	if err != nil {
-		return "", err
-	}
+	b.WriteRune('(')
 	for i := 0; i < number; i++ {
-		_, err := b.WriteRune('?')
-		if err != nil {
-			return "", err
-		}
+		b.WriteRune('?')
 		if i != number-1 {
-			_, err := b.WriteString(", ")
-			if err != nil {
-				return "", err
-			}
+			b.WriteString(", ")
 		}
 	}
-	_, err = b.WriteRune(')')
-	if err != nil {
-		return "", err
-	}
+	b.WriteRune(')')
 
-	return fmt.Sprint(b.String(), str), nil
+	return fmt.Sprint(b.String(), str)
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
@@ -128,8 +113,7 @@ func arrageWhiteSpace(str string) string {
 		buff.WriteByte(str[i])
 	}
 	ret = buff.String()
-	ret = strings.TrimLeft(ret, " ")
-	return strings.TrimRight(ret, " ")
+	return strings.Trim(ret, " ")
 }
 
 type encoder struct {
