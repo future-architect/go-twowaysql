@@ -17,18 +17,18 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 	mapParams := map[string]interface{}{}
 
 	if inputParams != nil {
-		err := encode(mapParams, inputParams)
-		if err != nil {
+		if err := encode(mapParams, inputParams); err != nil {
 			return "", nil, err
 		}
 	} else {
 		mapParams = nil
 	}
 
-	tokens, err := tokinize(inputQuery)
+	tokens, err := tokenize(inputQuery)
 	if err != nil {
 		return "", nil, err
 	}
+
 	tree, err := ast(tokens)
 	if err != nil {
 		return "", nil, err
@@ -44,13 +44,12 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	return arrageWhiteSpace(query), params, nil
+	return arrangeWhiteSpace(query), params, nil
 }
 
 func build(tokens []token, inputParams map[string]interface{}) (string, []interface{}, error) {
 	var b strings.Builder
-	var params []interface{}
-	var err error
+	params := make([]interface{}, 0, len(tokens))
 
 	for _, token := range tokens {
 		if token.kind == tkBind {
@@ -58,17 +57,11 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 				switch slice := elem.(type) {
 				case []string:
 					token.str = bindLiterals(token.str, len(slice))
-					if err != nil {
-						return "", nil, err
-					}
 					for _, value := range slice {
 						params = append(params, value)
 					}
 				case []int:
 					token.str = bindLiterals(token.str, len(slice))
-					if err != nil {
-						return "", nil, err
-					}
 					for _, value := range slice {
 						params = append(params, value)
 					}
@@ -104,7 +97,7 @@ func bindLiterals(str string, number int) string {
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
 // 単純な空白を想定。 -> issue: よりロバストな実装
-func arrageWhiteSpace(str string) string {
+func arrangeWhiteSpace(str string) string {
 	ret := ""
 	buff := bytes.NewBufferString(ret)
 	for i := 0; i < len(str); i++ {
@@ -140,8 +133,7 @@ func (m encoder) LeaveChild(tag interface{}) (err error) {
 }
 
 func encode(dest map[string]interface{}, src interface{}) error {
-	enc := &encoder{
+	return runtimescan.Encode(src, "twowaysql", &encoder{
 		dest: dest,
-	}
-	return runtimescan.Encode(src, "twowaysql", enc)
+	})
 }

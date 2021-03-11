@@ -47,19 +47,14 @@ func ast(tokens []token) (*tree, error) {
 
 func program(tokens []token) (*tree, error) {
 	index := 0
-
-	node, err := stmt(tokens, &index)
-	if err != nil {
-		return nil, err
-	}
-
-	return node, nil
+	return stmt(tokens, &index)
 }
 
 // token index token[index]を見ている
 func stmt(tokens []token, index *int) (*tree, error) {
 	var node *tree
 	var err error
+
 	if consume(tokens, index, tkSQLStmt) {
 		// SQLStmt stmt
 		node = &tree{
@@ -92,6 +87,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 			Token: &tokens[*index],
 		}
 		return node, nil
+
 	} else if consume(tokens, index, tkIf) {
 		// "IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
 		node = &tree{
@@ -121,6 +117,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 			}
 			break
 		}
+
 		if consume(tokens, index, tkElse) {
 			// ("ELSE" stmt)?
 			child := &tree{
@@ -162,7 +159,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 func consume(tokens []token, index *int, kind tokenKind) bool {
 	//println("str: ", tokens[*index].str, "kind: ", tokens[*index].kind, "want kind: ", kind)
 	if tokens[*index].kind == kind {
-		// TkEndOfPraogramでインクリメントしてしまうと
+		// TkEndOfProgramでインクリメントしてしまうと
 		// その後のconsume呼び出しでIndex Out Of Bounds例外が発生してしまう
 		if kind != tkEndOfProgram {
 			*index++

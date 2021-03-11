@@ -25,8 +25,8 @@ type token struct {
 	condition string /* for IF/ELIF */
 }
 
-// tokenizeは文字列を受け取ってトークンの列を返す。
-func tokinize(str string) ([]token, error) {
+// tokenizeは文字列を受け取ってトークンの列を返す
+func tokenize(str string) ([]token, error) {
 	var tokens []token
 
 	index := 0
@@ -134,8 +134,7 @@ func tokinize(str string) ([]token, error) {
 
 // ?/*value*/から value1を取り出す
 func retrieveValue(str string) string {
-	var retStr string
-	retStr = strings.Trim(str, " ")
+	retStr := strings.Trim(str, " ")
 	retStr = strings.TrimLeft(retStr, "?")
 	retStr = removeCommentSymbol(retStr)
 	return strings.Trim(retStr, " ")
@@ -149,7 +148,7 @@ func bindLiteral(str string) string {
 	return "?" + str
 }
 
-// /* (IF|ELIF) condition */ -> condtionを返す
+// /* (IF|ELIF) condition */ -> conditionを返す
 // kind must be tkIf or tkElif
 func retrieveCondition(kind tokenKind, str string) string {
 	str = removeCommentSymbol(str)
