@@ -39,7 +39,6 @@ func ast(tokens []token) (*tree, error) {
 		return nil, err
 	}
 	if node.nodeCount() != len(tokens) {
-		//log.Println("node", nodeCount(node), "tokens", len(tokens))
 		return nil, errors.New("can not generate abstract syntax tree")
 	}
 
@@ -58,7 +57,6 @@ func program(tokens []token) (*tree, error) {
 }
 
 // token index token[index]を見ている
-// 課題：不正な形式でもエラーが返らないと思う。ただ正しくない結果が返ってくる
 func stmt(tokens []token, index *int) (*tree, error) {
 	var node *tree
 	var err error
@@ -90,12 +88,12 @@ func stmt(tokens []token, index *int) (*tree, error) {
 		node = &tree{
 			Kind: nodeKind(tkEndOfProgram),
 			// consumeはTkEndOfProgramの時はインクリメントしないから1を引かない
-			// かなりよくない設計
+			// かなりよくない設計、一貫性がない。
 			Token: &tokens[*index],
 		}
 		return node, nil
 	} else if consume(tokens, index, tkIf) {
-		//"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
+		// "IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt
 		node = &tree{
 			Kind:  ndIf,
 			Token: &tokens[*index-1],
@@ -106,7 +104,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 		}
 		tmpNode := node
 		for {
-			//("ELLF" stmt)*
+			// ("ELLF" stmt)*
 			if consume(tokens, index, tkElif) {
 				child := &tree{
 					Kind:  ndElif,
@@ -124,7 +122,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 			break
 		}
 		if consume(tokens, index, tkElse) {
-			//("ELSE" stmt)?
+			// ("ELSE" stmt)?
 			child := &tree{
 				Kind:  ndElse,
 				Token: &tokens[*index-1],
@@ -139,7 +137,7 @@ func stmt(tokens []token, index *int) (*tree, error) {
 		}
 
 		if consume(tokens, index, tkEnd) {
-			//"END"
+			// "END"
 			child := &tree{
 				Kind:  ndEnd,
 				Token: &tokens[*index-1],
@@ -154,13 +152,13 @@ func stmt(tokens []token, index *int) (*tree, error) {
 			return nil, fmt.Errorf("can not parse: expected /* END */, but got %v", tokens[*index].kind)
 		}
 
-		//どれも一致しなかった
+		// どれも一致しなかった
 		return node, nil
 	}
 	return node, nil
 }
 
-//tokenが所望のものか調べる。一致していればインデックスを一つ進める
+// tokenが所望のものか調べる。一致していればインデックスを一つ進める
 func consume(tokens []token, index *int, kind tokenKind) bool {
 	//println("str: ", tokens[*index].str, "kind: ", tokens[*index].kind, "want kind: ", kind)
 	if tokens[*index].kind == kind {
