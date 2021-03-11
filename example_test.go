@@ -16,13 +16,13 @@ var (
 func ExampleTwowaysql_Exec() {
 
 	type Info struct {
-		Name       string   `map:"name"`
-		EmpNo      int      `map:"EmpNo"`
-		MaxEmpNo   int      `map:"maxEmpNo"`
-		DeptNo     int      `map:"deptNo"`
-		Email      string   `map:"email"`
-		GenderList []string `map:"gender_list"`
-		IntList    []int    `map:"int_list"`
+		Name       string   `twowaysql:"name"`
+		EmpNo      int      `twowaysql:"EmpNo"`
+		MaxEmpNo   int      `twowaysql:"maxEmpNo"`
+		DeptNo     int      `twowaysql:"deptNo"`
+		Email      string   `twowaysql:"email"`
+		GenderList []string `twowaysql:"gender_list"`
+		IntList    []int    `twowaysql:"int_list"`
 	}
 
 	var params = Info{
@@ -50,13 +50,13 @@ func ExampleTwowaysql_Select() {
 	}
 
 	type Info struct {
-		Name       string   `map:"name"`
-		EmpNo      int      `map:"EmpNo"`
-		MaxEmpNo   int      `map:"maxEmpNo"`
-		DeptNo     int      `map:"deptNo"`
-		Email      string   `map:"email"`
-		GenderList []string `map:"gender_list"`
-		IntList    []int    `map:"int_list"`
+		Name       string   `twowaysql:"name"`
+		EmpNo      int      `twowaysql:"EmpNo"`
+		MaxEmpNo   int      `twowaysql:"maxEmpNo"`
+		DeptNo     int      `twowaysql:"deptNo"`
+		Email      string   `twowaysql:"email"`
+		GenderList []string `twowaysql:"gender_list"`
+		IntList    []int    `twowaysql:"int_list"`
 	}
 
 	var people []Person
@@ -74,13 +74,13 @@ func ExampleTwowaysql_Select() {
 func ExampleEval() {
 
 	type Info struct {
-		Name       string   `map:"name"`
-		EmpNo      int      `map:"EmpNo"`
-		MaxEmpNo   int      `map:"maxEmpNo"`
-		DeptNo     int      `map:"deptNo"`
-		Email      string   `map:"email"`
-		GenderList []string `map:"gender_list"`
-		IntList    []int    `map:"int_list"`
+		Name       string   `twowaysql:"name"`
+		EmpNo      int      `twowaysql:"EmpNo"`
+		MaxEmpNo   int      `twowaysql:"maxEmpNo"`
+		DeptNo     int      `twowaysql:"deptNo"`
+		Email      string   `twowaysql:"email"`
+		GenderList []string `twowaysql:"gender_list"`
+		IntList    []int    `twowaysql:"int_list"`
 	}
 
 	var params = Info{

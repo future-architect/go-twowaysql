@@ -5,19 +5,19 @@ import (
 )
 
 type Info struct {
-	Name       string      `map:"name"`
-	EmpNo      int         `map:"EmpNo"`
-	MaxEmpNo   int         `map:"maxEmpNo"`
-	DeptNo     int         `map:"deptNo"`
-	FirstName  string      `map:"firstName"`
-	LastName   string      `map:"lastName"`
-	Email      string      `map:"email"`
-	GenderList []string    `map:"gender_list"`
-	IntList    []int       `map:"int_list"`
-	Checked    bool        `map:"checked"`
-	Unchecked  bool        `map:"unchecked"`
-	Nil        interface{} `map:"nil"`
-	Zero       int         `map:"zero"`
+	Name       string      `twowaysql:"name"`
+	EmpNo      int         `twowaysql:"EmpNo"`
+	MaxEmpNo   int         `twowaysql:"maxEmpNo"`
+	DeptNo     int         `twowaysql:"deptNo"`
+	FirstName  string      `twowaysql:"firstName"`
+	LastName   string      `twowaysql:"lastName"`
+	Email      string      `twowaysql:"email"`
+	GenderList []string    `twowaysql:"gender_list"`
+	IntList    []int       `twowaysql:"int_list"`
+	Checked    bool        `twowaysql:"checked"`
+	Unchecked  bool        `twowaysql:"unchecked"`
+	Nil        interface{} `twowaysql:"nil"`
+	Zero       int         `twowaysql:"zero"`
 }
 
 func TestEval(t *testing.T) {
