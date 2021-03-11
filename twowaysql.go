@@ -19,60 +19,30 @@ func New(db *sqlx.DB) *Twowaysql {
 	}
 }
 
-// SelectContext is a thin wrapper around db.SelectContext in the sqlx package.
-func (t *Twowaysql) SelectContext(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
+// Select is a thin wrapper around db.Select in the sqlx package.
+// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
+func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params interface{}) error {
 
-	convertedQuery, bindParams, err := Generate(query, params)
+	convertedQuery, bindParams, err := Eval(query, params)
 	if err != nil {
 		return err
 	}
 
-	//適したplace holderに変換
 	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
 
 }
 
-// Select is a thin wrapper around db.Select in the sqlx package.
-func (t *Twowaysql) Select(inputStructs interface{}, query string, params map[string]interface{}) error {
-
-	convertedQuery, bindParams, err := Generate(query, params)
-	if err != nil {
-		return err
-	}
-
-	//適したplace holderに変換
-	convertedQuery = t.db.Rebind(convertedQuery)
-
-	return t.db.Select(inputStructs, convertedQuery, bindParams...)
-	//fmt.Println("rv", rv)
-
-}
-
 // Exec is a thin wrapper around db.Exec in the sqlx package.
-func (t *Twowaysql) Exec(query string, params map[string]interface{}) (sql.Result, error) {
+// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
+func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := Generate(query, params)
+	convertedQuery, bindParams, err := Eval(query, params)
 	if err != nil {
 		return nil, err
 	}
 
-	//適したplace holderに変換
-	convertedQuery = t.db.Rebind(convertedQuery)
-
-	return t.db.Exec(convertedQuery, bindParams...)
-}
-
-// ExecContext is a thin wrapper around db.ExecContext in the sqlx package.
-func (t *Twowaysql) ExecContext(ctx context.Context, query string, params map[string]interface{}) (sql.Result, error) {
-
-	convertedQuery, bindParams, err := Generate(query, params)
-	if err != nil {
-		return nil, err
-	}
-
-	//適したplace holderに変換
 	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.ExecContext(ctx, convertedQuery, bindParams...)

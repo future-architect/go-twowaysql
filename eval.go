@@ -3,13 +3,28 @@ package twowaysql
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"unicode"
+
+	"gitlab.com/osaki-lab/tagscanner/runtimescan"
 )
 
-// Generate returns converted query and bind value
+// Eval returns converted query and bind value.
+// inputParams takes a tagged struct. Tags must be in the form `map:"tag_name"`.
 // The return value is expected to be used to issue queries to the database
-func Generate(inputQuery string, inputParams map[string]interface{}) (string, []interface{}, error) {
+func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, error) {
+	mapParams := map[string]interface{}{}
+
+	if inputParams != nil {
+		err := encode(mapParams, inputParams)
+		if err != nil {
+			return "", nil, err
+		}
+	} else {
+		mapParams = nil
+	}
+
 	tokens, err := tokinize(inputQuery)
 	if err != nil {
 		return "", nil, err
@@ -19,12 +34,12 @@ func Generate(inputQuery string, inputParams map[string]interface{}) (string, []
 		return "", nil, err
 	}
 
-	generatedTokens, err := parse(tree, inputParams)
+	generatedTokens, err := tree.parse(mapParams)
 	if err != nil {
 		return "", nil, err
 	}
 
-	query, params, err := build(generatedTokens, inputParams)
+	query, params, err := build(generatedTokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}
@@ -42,7 +57,7 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 			if elem, ok := inputParams[token.value]; ok {
 				switch slice := elem.(type) {
 				case []string:
-					token.str, err = bindLiterals(token.str, len(slice))
+					token.str = bindLiterals(token.str, len(slice))
 					if err != nil {
 						return "", nil, err
 					}
@@ -50,7 +65,7 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 						params = append(params, value)
 					}
 				case []int:
-					token.str, err = bindLiterals(token.str, len(slice))
+					token.str = bindLiterals(token.str, len(slice))
 					if err != nil {
 						return "", nil, err
 					}
@@ -64,42 +79,27 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 				return "", nil, fmt.Errorf("no parameter that matches the bind value: %s", token.value)
 			}
 		}
-		_, err = b.WriteString(token.str)
-		if err != nil {
-			return "", nil, err
-		}
+		b.WriteString(token.str)
 	}
 	return b.String(), params, nil
 }
 
 // ?/* ... */ -> (?, ?, ?)/* ... */みたいにする
-func bindLiterals(str string, number int) (string, error) {
+func bindLiterals(str string, number int) string {
 	str = strings.TrimLeftFunc(str, func(r rune) bool {
 		return r != unicode.SimpleFold('/')
 	})
 	var b strings.Builder
-	_, err := b.WriteRune('(')
-	if err != nil {
-		return "", err
-	}
+	b.WriteRune('(')
 	for i := 0; i < number; i++ {
-		_, err := b.WriteRune('?')
-		if err != nil {
-			return "", err
-		}
+		b.WriteRune('?')
 		if i != number-1 {
-			_, err := b.WriteString(", ")
-			if err != nil {
-				return "", err
-			}
+			b.WriteString(", ")
 		}
 	}
-	_, err = b.WriteRune(')')
-	if err != nil {
-		return "", err
-	}
+	b.WriteRune(')')
 
-	return fmt.Sprint(b.String(), str), nil
+	return fmt.Sprint(b.String(), str)
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
@@ -114,6 +114,34 @@ func arrageWhiteSpace(str string) string {
 		buff.WriteByte(str[i])
 	}
 	ret = buff.String()
-	ret = strings.TrimLeft(ret, " ")
-	return strings.TrimRight(ret, " ")
+	return strings.Trim(ret, " ")
+}
+
+type encoder struct {
+	dest map[string]interface{}
+}
+
+func (m encoder) ParseTag(name, tagStr, pathStr string, elemType reflect.Type) (tag interface{}, err error) {
+	return runtimescan.BasicParseTag(name, tagStr, pathStr, elemType)
+}
+
+func (m *encoder) VisitField(tag, value interface{}) (err error) {
+	t := tag.(*runtimescan.BasicTag)
+	m.dest[t.Tag] = value
+	return nil
+}
+
+func (m encoder) EnterChild(tag interface{}) (err error) {
+	return nil
+}
+
+func (m encoder) LeaveChild(tag interface{}) (err error) {
+	return nil
+}
+
+func encode(dest map[string]interface{}, src interface{}) error {
+	enc := &encoder{
+		dest: dest,
+	}
+	return runtimescan.Encode(src, "map", enc)
 }

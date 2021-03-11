@@ -18,7 +18,6 @@ const (
 	tkEndOfProgram
 )
 
-// token holds the information of the token
 type token struct {
 	kind      tokenKind
 	str       string
@@ -26,8 +25,7 @@ type token struct {
 	condition string /* for IF/ELIF */
 }
 
-//tokenizeは文字列を受け取ってトークンの列を返す。
-//Token構造体をどのように設計するのが良いかはまだよく分からない
+// tokenizeは文字列を受け取ってトークンの列を返す。
 func tokinize(str string) ([]token, error) {
 	var tokens []token
 
@@ -127,7 +125,7 @@ func tokinize(str string) ([]token, error) {
 		index++
 	}
 
-	//処理しやすいように終点Tokenを付与する
+	// 処理しやすいように終点Tokenを付与する
 	tokens = append(tokens, token{
 		kind: tkEndOfProgram,
 	})
