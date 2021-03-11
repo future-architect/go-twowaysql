@@ -1,3 +1,4 @@
+// Package twowaysql provides an implementation of 2WaySQL.
 package twowaysql
 
 import (
@@ -7,7 +8,7 @@ import (
 	"github.com/jmoiron/sqlx"
 )
 
-// Twowaysql is a struct for issuing two way sql query
+// Twowaysql is a struct for issuing 2WaySQL query
 type Twowaysql struct {
 	db *sqlx.DB
 }
@@ -20,7 +21,8 @@ func New(db *sqlx.DB) *Twowaysql {
 }
 
 // Select is a thin wrapper around db.Select in the sqlx package.
-// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
+// params takes a tagged struct. The tags format must be `twowaysql:"tag_name"`.
+// inputStruct takes a pointer to a slice of a struct. The struct tag format must be `db:"tag_name"`.
 func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params interface{}) error {
 
 	convertedQuery, bindParams, err := Eval(query, params)
@@ -35,7 +37,7 @@ func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query 
 }
 
 // Exec is a thin wrapper around db.Exec in the sqlx package.
-// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
+// params takes a tagged struct. The tags format must be `twowaysql:"tag_name"`.
 func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) (sql.Result, error) {
 
 	convertedQuery, bindParams, err := Eval(query, params)

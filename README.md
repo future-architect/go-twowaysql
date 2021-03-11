@@ -32,10 +32,10 @@ type Person struct {
 }
 
 type Params {
-    Name       string      `map:"name"`
-    EmpNo      int         `map:"EmpNo"`
-    MaxEmpNo   int         `map:"maxEmpNo"`
-    DeptNo     int         `map:"deptNo"`
+    Name       string      `twowaysql:"name"`
+    EmpNo      int         `twowaysql:"EmpNo"`
+    MaxEmpNo   int         `twowaysql:"maxEmpNo"`
+    DeptNo     int         `twowaysql:"deptNo"`
 }
 
 func main() {
@@ -49,7 +49,7 @@ func main() {
         deptNp: 15
     }
 
-    err := db.SelectContext(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1`, &params)
+    err := db.Select(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1`, &params)
     if err != nil {
     	log.Fatalf("select failed: %v", err)
     }
