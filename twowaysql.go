@@ -20,6 +20,7 @@ func New(db *sqlx.DB) *Twowaysql {
 }
 
 // Select is a thin wrapper around db.Select in the sqlx package.
+// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
 func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params interface{}) error {
 
 	convertedQuery, bindParams, err := Eval(query, params)
@@ -27,7 +28,6 @@ func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query 
 		return err
 	}
 
-	//適したplace holderに変換
 	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
@@ -35,6 +35,7 @@ func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query 
 }
 
 // Exec is a thin wrapper around db.Exec in the sqlx package.
+// params takes a tagged struct. Tags must be in the form `map:"tag_name"`.
 func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) (sql.Result, error) {
 
 	convertedQuery, bindParams, err := Eval(query, params)
@@ -42,7 +43,6 @@ func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) 
 		return nil, err
 	}
 
-	//適したplace holderに変換
 	convertedQuery = t.db.Rebind(convertedQuery)
 
 	return t.db.ExecContext(ctx, convertedQuery, bindParams...)

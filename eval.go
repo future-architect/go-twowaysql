@@ -10,7 +10,8 @@ import (
 	"gitlab.com/osaki-lab/tagscanner/runtimescan"
 )
 
-// Eval returns converted query and bind value
+// Eval returns converted query and bind value.
+// inputParams takes a tagged struct. Tags must be in the form `map:"tag_name"`.
 // The return value is expected to be used to issue queries to the database
 func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, error) {
 	mapParams := map[string]interface{}{}
