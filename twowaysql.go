@@ -20,7 +20,7 @@ func New(db *sqlx.DB) *Twowaysql {
 }
 
 // Select is a thin wrapper around db.Select in the sqlx package.
-func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params map[string]interface{}) error {
+func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params interface{}) error {
 
 	convertedQuery, bindParams, err := Eval(query, params)
 	if err != nil {
@@ -35,7 +35,7 @@ func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query 
 }
 
 // Exec is a thin wrapper around db.Exec in the sqlx package.
-func (t *Twowaysql) Exec(ctx context.Context, query string, params map[string]interface{}) (sql.Result, error) {
+func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) (sql.Result, error) {
 
 	convertedQuery, bindParams, err := Eval(query, params)
 	if err != nil {
