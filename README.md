@@ -26,9 +26,16 @@ import (
 )
 
 type Person struct {
-    FirstName string `twowaysql:"first_name"`
-    LastName  string `twowaysql:"last_name"`
-    Email     string
+    FirstName string `db:"first_name"`
+    LastName  string `db:"last_name"`
+    Email     string `db:"email"`
+}
+
+type Params {
+    Name       string      `map:"name"`
+    EmpNo      int         `map:"EmpNo"`
+    MaxEmpNo   int         `map:"maxEmpNo"`
+    DeptNo     int         `map:"deptNo"`
 }
 
 func main() {
@@ -37,8 +44,12 @@ func main() {
     db, err := twowaysql.Connect("postgres", "user=foo dbname=bar sslmode=disable") 
 
     var people []Person
-    var params = map[string]interface{}{"maxEmpNo": 2000, "deptNo":15} 
-    err := db.Select(&people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF exists(deptNo)*/ AND dept_no = /*deptNo*/'1'`).Run(ctx, params)
+    var params = Params{
+        MaxEmpNo: 2000,
+        deptNp: 15
+    }
+
+    err := db.SelectContext(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1`, &params)
     if err != nil {
     	log.Fatalf("select failed: %v", err)
     }
