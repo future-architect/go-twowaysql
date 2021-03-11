@@ -22,17 +22,17 @@ func New(db *sqlx.DB) *Twowaysql {
 
 // Select is a thin wrapper around db.Select in the sqlx package.
 // params takes a tagged struct. The tags format must be `twowaysql:"tag_name"`.
-// inputStruct takes a pointer to a slice of a struct. The struct tag format must be `db:"tag_name"`.
-func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query string, params interface{}) error {
+// dest takes a pointer to a slice of a struct. The struct tag format must be `db:"tag_name"`.
+func (t *Twowaysql) Select(ctx context.Context, dest interface{}, query string, params interface{}) error {
 
-	convertedQuery, bindParams, err := Eval(query, params)
+	eval, bindParams, err := Eval(query, params)
 	if err != nil {
 		return err
 	}
 
-	convertedQuery = t.db.Rebind(convertedQuery)
+	q := t.db.Rebind(eval)
 
-	return t.db.SelectContext(ctx, inputStructs, convertedQuery, bindParams...)
+	return t.db.SelectContext(ctx, dest, q, bindParams...)
 
 }
 
@@ -40,12 +40,12 @@ func (t *Twowaysql) Select(ctx context.Context, inputStructs interface{}, query 
 // params takes a tagged struct. The tags format must be `twowaysql:"tag_name"`.
 func (t *Twowaysql) Exec(ctx context.Context, query string, params interface{}) (sql.Result, error) {
 
-	convertedQuery, bindParams, err := Eval(query, params)
+	eval, bindParams, err := Eval(query, params)
 	if err != nil {
 		return nil, err
 	}
 
-	convertedQuery = t.db.Rebind(convertedQuery)
+	q := t.db.Rebind(eval)
 
-	return t.db.ExecContext(ctx, convertedQuery, bindParams...)
+	return t.db.ExecContext(ctx, q, bindParams...)
 }

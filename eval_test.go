@@ -523,18 +523,6 @@ func TestGenerateAbnormal(t *testing.T) {
 	}
 }
 
-func stringSliceEqual(want, got []interface{}) bool {
-	if len(want) != len(got) {
-		return false
-	}
-	for i := 0; i < len(want); i++ {
-		if want[i] != got[i] {
-			return false
-		}
-	}
-	return true
-}
-
 func interfaceSliceEqual(got, want []interface{}) bool {
 	if len(want) != len(got) {
 		return false

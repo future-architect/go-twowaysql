@@ -29,14 +29,17 @@ func ExampleTwowaysql_Exec() {
 		MaxEmpNo: 3,
 		DeptNo:   12,
 	}
+
 	result, err := tw.Exec(ctx, `UPDATE persons SET dept_no = /*deptNo*/1 WHERE employee_no = /*EmpNo*/1`, &params)
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	rows, err := result.RowsAffected()
 	if err != nil {
 		log.Fatal(err)
 	}
+
 	if rows != 1 {
 		log.Fatalf("expected to affect 1 row. affected %d", rows)
 	}
@@ -59,12 +62,12 @@ func ExampleTwowaysql_Select() {
 		IntList    []int    `twowaysql:"int_list"`
 	}
 
-	var people []Person
 	var params = Info{
 		MaxEmpNo: 3,
 		DeptNo:   12,
 	}
 
+	var people []Person
 	err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, &params)
 	if err != nil {
 		log.Fatal(err)
@@ -90,12 +93,12 @@ func ExampleEval() {
 		GenderList: []string{"M", "F"},
 		IntList:    []int{1, 2, 3},
 	}
-	var query = `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 AND /* IF int_list !== null */  person.gender in /*int_list*/(3,5,7) /* END */`
+	var before = `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 AND /* IF int_list !== null */  person.gender in /*int_list*/(3,5,7) /* END */`
 
-	convertedQuery, getParams, _ := twowaysql.Eval(query, &params)
+	after, afterParams, _ := twowaysql.Eval(before, &params)
 
-	fmt.Println(convertedQuery)
-	fmt.Println(getParams)
+	fmt.Println(after)
+	fmt.Println(afterParams)
 
 	// Output:
 	// SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/

@@ -12,12 +12,12 @@ func TestParse(t *testing.T) {
 	}{
 		{
 			name:  "",
-			input: makeEmpty(),
+			input: wantEmpty,
 			want:  []token{},
 		},
 		{
 			name:  "no comment",
-			input: makeNoComment(),
+			input: wantNoComment,
 			want: []token{
 				{
 					kind: tkSQLStmt,
@@ -27,7 +27,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "if",
-			input: makeTreeIf(),
+			input: wantTreeIf,
 			want: []token{
 				{
 					kind: tkSQLStmt,
@@ -41,7 +41,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "if and bind",
-			input: makeTreeIfBind(),
+			input: wantTreeIfBind,
 			want: []token{
 				{
 					kind: tkSQLStmt,
@@ -60,7 +60,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "if elif else",
-			input: makeIfElifElse(),
+			input: wantIfElifElse,
 			want: []token{
 				{
 					kind: tkSQLStmt,
@@ -74,7 +74,7 @@ func TestParse(t *testing.T) {
 		},
 		{
 			name:  "if nest",
-			input: makeIfNest(),
+			input: wantIfNest,
 			want: []token{
 				{
 					kind: tkSQLStmt,
