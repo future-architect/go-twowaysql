@@ -16,49 +16,60 @@ TODO Below is an example which shows some common use cases for twowaysql.
 package main
 
 import (
-    "context"
-    "database/sql"
-    "fmt"
-    "log"
-    
-    _ "github.com/lib/pq"
-    "gitlab.com/osaki-lab/twowaysql"
+	"context"
+	"fmt"
+	"log"
+
+	"github.com/jmoiron/sqlx"
+	_ "github.com/lib/pq"
+	"gitlab.com/osaki-lab/twowaysql"
 )
 
 type Person struct {
-    FirstName string `db:"first_name"`
-    LastName  string `db:"last_name"`
-    Email     string `db:"email"`
+	EmpNo     int    `db:"employee_no"`
+	DeptNo    int    `db:"dept_no"`
+	FirstName string `db:"first_name"`
+	LastName  string `db:"last_name"`
+	Email     string `db:"email"`
 }
 
-type Params {
-    Name       string      `twowaysql:"name"`
-    EmpNo      int         `twowaysql:"EmpNo"`
-    MaxEmpNo   int         `twowaysql:"maxEmpNo"`
-    DeptNo     int         `twowaysql:"deptNo"`
+type Params struct {
+	Name     string `twowaysql:"name"`
+	EmpNo    int    `twowaysql:"EmpNo"`
+	MaxEmpNo int    `twowaysql:"maxEmpNo"`
+	DeptNo   int    `twowaysql:"deptNo"`
 }
 
 func main() {
-    ctx := context.Background()
+	ctx := context.Background()
 
-    db, err := twowaysql.Connect("postgres", "user=foo dbname=bar sslmode=disable") 
+	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
 
-    var people []Person
-    var params = Params{
-        MaxEmpNo: 2000,
-        deptNp: 15
-    }
+	defer db.Close()
+	if err != nil {
+		log.Fatal(err)
+	}
 
-    err := db.Select(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1 /* END */`, &params)
-    if err != nil {
-    	log.Fatalf("select failed: %v", err)
-    }
-    
-    fmt.Printf("%#v\n%#v", people[0], people[1])
-    // Person{FirstName:"Jason", LastName:"Moiron", Email:"jmoiron@jmoiron.net"}
-    // Person{FirstName:"John", LastName:"Doe", Email:"johndoeDNE@gmail.net"}
+	tw := twowaysql.New(db)
+
+	var people []Person
+	var params = Params{
+		MaxEmpNo: 2000,
+		DeptNo:   15,
+	}
+
+	err = tw.Select(ctx, &people, `SELECT * FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, &params)
+	if err != nil {
+		log.Fatalf("select failed: %v", err)
+	}
+
+	fmt.Printf("%#v\n%#v\n%#v", people[0], people[1], people[2])
+	//Person{EmpNo:1, DeptNo:10, FirstName:"Evan", LastName:"MacMans", Email:"evanmacmans@example.com"}
+	//Person{EmpNo:3, DeptNo:12, FirstName:"Jimmie", LastName:"Bruce", Email:"jimmiebruce@example.com"}
+	//Person{EmpNo:2, DeptNo:11, FirstName:"Malvina", LastName:"FitzSimons", Email:"malvinafitzsimons@example.com"}
 
 }
+
 ```
 
 
