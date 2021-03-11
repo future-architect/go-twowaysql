@@ -49,7 +49,7 @@ func main() {
         deptNp: 15
     }
 
-    err := db.Select(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1`, &params)
+    err := db.Select(ctx, &people, `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no = /*deptNo*/1 /* END */`, &params)
     if err != nil {
     	log.Fatalf("select failed: %v", err)
     }
