@@ -1,4 +1,4 @@
-module gitlab.com/osaki-lab/twowaysql
+module github.com/future-architect/go-twowaysql
 
 go 1.16
 

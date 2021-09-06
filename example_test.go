@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"log"
 
-	"gitlab.com/osaki-lab/twowaysql"
+	"github.com/future-architect/go-twowaysql"
 )
 
 var (
