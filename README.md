@@ -5,7 +5,7 @@
 ## Installation
 
 ```
-go get gitlab.com/osaki-lab/twowaysql
+go get github.com/future-architect/go-twowaysql 
 ```
 
 ## Usage
@@ -20,9 +20,9 @@ import (
 	"fmt"
 	"log"
 
+	"github.com/future-architect/go-twowaysql"
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
-	"gitlab.com/osaki-lab/twowaysql"
 )
 
 type Person struct {
