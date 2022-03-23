@@ -16,6 +16,8 @@ import (
 func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, error) {
 	mapParams := map[string]interface{}{}
 
+	query := formatQuery(inputQuery)
+
 	if inputParams != nil {
 		if err := encode(mapParams, inputParams); err != nil {
 			return "", nil, err
@@ -24,7 +26,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		mapParams = nil
 	}
 
-	tokens, err := tokenize(inputQuery)
+	tokens, err := tokenize(query)
 	if err != nil {
 		return "", nil, err
 	}
@@ -39,12 +41,12 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	query, params, err := build(generatedTokens, mapParams)
+	convertedQuery, params, err := build(generatedTokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}
 
-	return arrangeWhiteSpace(query), params, nil
+	return arrangeWhiteSpace(convertedQuery), params, nil
 }
 
 func build(tokens []token, inputParams map[string]interface{}) (string, []interface{}, error) {
@@ -93,6 +95,13 @@ func bindLiterals(str string, number int) string {
 	b.WriteRune(')')
 
 	return fmt.Sprint(b.String(), str)
+}
+
+func formatQuery(query string) string {
+	query = strings.ReplaceAll(query, "\n", " ")
+	query = strings.ReplaceAll(query, "\t", " ")
+	query = strings.TrimSpace(query)
+	return query
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
