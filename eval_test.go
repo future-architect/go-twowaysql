@@ -197,6 +197,131 @@ func TestEval(t *testing.T) {
 				3,
 			},
 		},
+		{
+			name: "multiline if true",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no < 1000
+				/* IF true */
+				AND dept_no = 1
+				/* END */
+			`,
+			inputParams: Info{},
+			wantQuery:   `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
+			wantParams:  []interface{}{},
+		},
+		{
+			name: "multiline if false elif false else",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no < 1000
+				/*
+					IF false
+				*/
+				AND dept_no = 1
+				/*
+					ELIF false
+				*/
+				AND boss_no = 2
+				/*
+					ELSE
+				*/
+				AND id = /*maxEmpNo*/3
+				/*
+					END
+				*/
+			`,
+			inputParams: Info{
+				Name:       "Jeff",
+				MaxEmpNo:   3,
+				DeptNo:     12,
+				GenderList: []string{"M", "F"},
+				IntList:    []int{1, 2, 3},
+			},
+			wantQuery:  `SELECT * FROM person WHERE employee_no < 1000 AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{3},
+		},
+		{
+			name: "multiline if nest",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no	<	1000
+				/*
+					IF true
+				*/
+					/*
+						IF false
+					*/
+					AND	dept_no		=	1
+					/*
+						ELSE
+					*/
+					AND	id			=	3
+					/*
+						END
+					*/
+				/*
+					ELSE
+				*/
+				AND	boss_id		=	4
+				/*
+					END
+				*/
+			`,
+			inputParams: Info{
+				Name:       "Jeff",
+				MaxEmpNo:   3,
+				DeptNo:     12,
+				GenderList: []string{"M", "F"},
+				IntList:    []int{1, 2, 3},
+			},
+			wantQuery:  `SELECT * FROM person WHERE employee_no < 1000 AND id = 3`,
+			wantParams: []interface{}{},
+		},
+		{
+			name: "multiline in bind string",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no		=	/*maxEmpNo*/1000
+				/*
+					IF int_list !== null
+				*/
+				AND	person.gender	in	/*int_list*/(3, 5, 7)
+				/*
+					END
+				*/
+			`,
+			inputParams: Info{
+				Name:       "Jeff",
+				MaxEmpNo:   3,
+				DeptNo:     12,
+				GenderList: []string{"M", "F"},
+				IntList:    []int{1, 2, 3},
+			},
+			wantQuery: `SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/`,
+			wantParams: []interface{}{
+				3,
+				1,
+				2,
+				3,
+			},
+		},
 	}
 
 	for _, tt := range tests {
