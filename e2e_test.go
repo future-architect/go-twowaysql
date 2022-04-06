@@ -189,6 +189,174 @@ func TestInsertAndDelete(t *testing.T) {
 	}
 }
 
+func TestTxCommit(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	tw := New(db)
+	ctx := context.Background()
+
+	// insert test data
+	const insertSQL = `
+	INSERT INTO persons
+		(employee_no, dept_no, first_name, last_name, email) VALUES
+		(11, 111, 'Clegg', 'George', 'clegggeorge@example.com')
+		;
+	`
+	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
+		t.Fatal(err)
+	}
+	defer tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = 11`, nil)
+
+	// begin
+	tx, err := tw.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// update
+	type Param struct {
+		EmpNo     int    `twowaysql:"EmpNo"`
+		FirstName string `twowaysql:"FirstName"`
+	}
+	const sql = `
+	UPDATE
+		persons
+	SET first_name = /*FirstName*/Jon
+	WHERE employee_no = /*EmpNo*/10`
+	param := Param{EmpNo: 11, FirstName: "Rimmer"}
+	res, err := tx.Exec(ctx, sql, &param)
+	if err != nil {
+		t.Error(err)
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		t.Error(err)
+	}
+	if rows != 1 {
+		t.Errorf("update rows = %v", rows)
+	}
+
+	// commit
+	if err := tx.Commit(); err != nil {
+		t.Error(err)
+	}
+
+	// check
+	people := []Person{}
+	if err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no = /*EmpNo*/10`, &param); err != nil {
+		t.Error(err)
+	}
+	expectedAfterCommit := []Person{
+		{
+			FirstName: "Rimmer",
+			LastName:  "George",
+			Email:     "clegggeorge@example.com",
+		},
+	}
+	if !match(expectedAfterCommit, people) {
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
+	}
+}
+
+func TestTxRollback(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	tw := New(db)
+	ctx := context.Background()
+
+	// insert test data
+	const insertSQL = `
+	INSERT INTO persons
+		(employee_no, dept_no, first_name, last_name, email) VALUES
+		(12, 121, 'Chmmg', 'Dudley', 'chmmgdudley@example.com')
+		;
+	`
+	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
+		t.Fatal(err)
+	}
+	defer tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = 12`, nil)
+
+	// begin
+	tx, err := tw.Begin(ctx)
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	// update
+	type Param struct {
+		EmpNo     int    `twowaysql:"EmpNo"`
+		FirstName string `twowaysql:"firstName"`
+	}
+	const sql = `
+	UPDATE
+		persons
+	SET first_name = /*firstName*/Jon
+	WHERE employee_no = /*EmpNo*/10`
+	param := Param{EmpNo: 12, FirstName: "Emerson"}
+	res, err := tx.Exec(ctx, sql, &param)
+	if err != nil {
+		t.Error(err)
+	}
+	rows, err := res.RowsAffected()
+	if err != nil {
+		t.Error(err)
+	}
+	if rows != 1 {
+		t.Errorf("update rows = %v", rows)
+	}
+
+	// rollback
+	if err := tx.Rollback(); err != nil {
+		t.Error(err)
+	}
+
+	// check
+	people := []Person{}
+	if err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no = /*EmpNo*/10`, &param); err != nil {
+		t.Error(err)
+	}
+	expectedAfterCommit := []Person{
+		{
+			FirstName: "Chmmg",
+			LastName:  "Dudley",
+			Email:     "chmmgdudley@example.com",
+		},
+	}
+	if !match(expectedAfterCommit, people) {
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
+	}
+}
+
 func match(p1, p2 []Person) bool {
 	if len(p1) != len(p2) {
 		return false
