@@ -2,6 +2,7 @@ package twowaysql
 
 import (
 	"context"
+	"errors"
 	"fmt"
 	"os"
 	"testing"
@@ -355,6 +356,125 @@ func TestTxRollback(t *testing.T) {
 	if !match(expectedAfterCommit, people) {
 		t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
 	}
+}
+
+func TestTxBlock(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer db.Close()
+
+	tw := New(db)
+	ctx := context.Background()
+
+	// insert test data
+	const insertSQL = `
+	INSERT INTO persons
+		(employee_no, dept_no, first_name, last_name, email) VALUES
+		(13, 131, 'Darling', 'Wat', 'darlingwat@example.com'),
+		(14, 141, 'Hallows', 'Jessie', 'hallowsjessie@example.com')
+		;`
+	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
+		t.Fatal(err)
+	}
+	defer tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = 13`, nil)
+	defer tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = 14`, nil)
+
+	type Param struct {
+		EmpNo     int    `twowaysql:"EmpNo"`
+		FirstName string `twowaysql:"firstName"`
+	}
+	// commit case
+	err = tw.Transaction(ctx, func(tx TwowaysqlTx) error {
+		// update
+		const sql = `
+		UPDATE
+			persons
+		SET first_name = /*firstName*/Jon
+		WHERE employee_no = /*EmpNo*/10`
+		param := Param{EmpNo: 13, FirstName: "COMMITED"}
+		res, err := tx.Exec(ctx, sql, &param)
+		if err != nil {
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows != 1 {
+			return fmt.Errorf("update rows = %v", rows)
+		}
+
+		return nil
+	})
+	if err != nil {
+		t.Error(err)
+	}
+
+	// rollcack case
+	err = tw.Transaction(ctx, func(tx TwowaysqlTx) error {
+		// update
+		const sql = `
+		UPDATE
+			persons
+		SET first_name = /*firstName*/Jon
+		WHERE employee_no = /*EmpNo*/10`
+		param := Param{EmpNo: 14, FirstName: "ROLLBACKED"}
+		res, err := tx.Exec(ctx, sql, &param)
+		if err != nil {
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows != 1 {
+			return fmt.Errorf("update rows = %v", rows)
+		}
+
+		// generate error
+		return errors.New("TEST ERROR")
+	})
+	if err == nil {
+		t.Error("unexpecte err == nil")
+	}
+
+	// check
+	people := []Person{}
+	const checkSQL = `SELECT first_name, last_name, email FROM persons WHERE employee_no IN (13, 14) order by employee_no`
+	if err := tw.Select(ctx, &people, checkSQL, nil); err != nil {
+		t.Error(err)
+	}
+	expectedAfterCommit := []Person{
+		// commit
+		{
+			FirstName: "COMMITED",
+			LastName:  "Wat",
+			Email:     "darlingwat@example.com",
+		},
+		// rollback
+		{
+			FirstName: "Hallows",
+			LastName:  "Jessie",
+			Email:     "hallowsjessie@example.com",
+		},
+	}
+	if !match(expectedAfterCommit, people) {
+		t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
+	}
+
 }
 
 func match(p1, p2 []Person) bool {
