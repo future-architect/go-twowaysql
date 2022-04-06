@@ -19,24 +19,10 @@ type Person struct {
 
 func TestSelect(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
-
 	ctx := context.Background()
 
 	// SELECT
@@ -59,7 +45,7 @@ func TestSelect(t *testing.T) {
 		},
 	}
 
-	err = tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, &params)
+	err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, &params)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}
@@ -72,31 +58,17 @@ func TestSelect(t *testing.T) {
 
 func TestUpdate(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
-
 	ctx := context.Background()
 
 	var params = Info{
 		MaxEmpNo: 3,
 		DeptNo:   12,
 	}
-	_, err = tw.Exec(ctx, `UPDATE persons SET dept_no = /*deptNo*/1 WHERE employee_no = /*EmpNo*/1`, &params)
+	_, err := tw.Exec(ctx, `UPDATE persons SET dept_no = /*deptNo*/1 WHERE employee_no = /*EmpNo*/1`, &params)
 	if err != nil {
 		t.Fatalf("exec: failed: %v", err)
 	}
@@ -124,24 +96,10 @@ func TestUpdate(t *testing.T) {
 
 func TestInsertAndDelete(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
-
 	ctx := context.Background()
 
 	var params = Info{
@@ -151,7 +109,7 @@ func TestInsertAndDelete(t *testing.T) {
 		DeptNo:    1011,
 		Email:     "jeffdean@example.com",
 	}
-	_, err = tw.Exec(ctx, `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com")`, &params)
+	_, err := tw.Exec(ctx, `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com")`, &params)
 	if err != nil {
 		t.Fatalf("exec: failed: %v", err)
 	}
@@ -192,22 +150,9 @@ func TestInsertAndDelete(t *testing.T) {
 
 func TestTxCommit(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
 	ctx := context.Background()
 
@@ -276,22 +221,9 @@ func TestTxCommit(t *testing.T) {
 
 func TestTxRollback(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
 	ctx := context.Background()
 
@@ -360,22 +292,9 @@ func TestTxRollback(t *testing.T) {
 
 func TestTxBlock(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
-	var db *sqlx.DB
-	var err error
-
-	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
-	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
-	}
-
-	if err != nil {
-		t.Fatal(err)
-	}
+	db := open(t)
 	defer db.Close()
-
 	tw := New(db)
 	ctx := context.Background()
 
@@ -397,7 +316,7 @@ func TestTxBlock(t *testing.T) {
 		FirstName string `twowaysql:"firstName"`
 	}
 	// commit case
-	err = tw.Transaction(ctx, func(tx TwowaysqlTx) error {
+	err := tw.Transaction(ctx, func(tx TwowaysqlTx) error {
 		// update
 		const sql = `
 		UPDATE
@@ -475,6 +394,23 @@ func TestTxBlock(t *testing.T) {
 		t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
 	}
 
+}
+
+func open(t *testing.T) *sqlx.DB {
+	var db *sqlx.DB
+	var err error
+
+	if host := os.Getenv("POSTGRES_HOST"); host != "" {
+		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+	} else {
+		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	}
+
+	if err != nil {
+		t.Fatal(err)
+	}
+
+	return db
 }
 
 func match(p1, p2 []Person) bool {
