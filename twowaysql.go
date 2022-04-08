@@ -63,7 +63,7 @@ func (t *Twowaysql) Begin(ctx context.Context) (*TwowaysqlTx, error) {
 }
 
 // Close is a thin wrapper around db.Close in the sqlx package.
-func (t *Twowaysql) Close(ctx context.Context) error {
+func (t *Twowaysql) Close() error {
 
 	if err := t.db.Close(); err != nil {
 		return fmt.Errorf("close db: %w", err)
