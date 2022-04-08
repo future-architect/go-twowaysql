@@ -1,4 +1,6 @@
 # twowaysql
+![test](https://github.com/future-architect/go-twowaysql/actions/workflows/test.yml/badge.svg)
+
 
 2-Way-SQL Go implementation
 
