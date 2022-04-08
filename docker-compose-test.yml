@@ -6,7 +6,7 @@ services:
       - POSTGRES_HOST=postgres
     depends_on: 
       - "db"
-    command: ["/usr/bin/wait-for-it", "db:5432", "--", "go", "test"]
+    command: ["/usr/bin/wait-for-it", "db:5432", "--", "go", "test", "-v", "./..."]
   
   db:
     image: postgres
