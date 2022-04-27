@@ -142,7 +142,30 @@ func (m encoder) LeaveChild(tag interface{}) (err error) {
 }
 
 func encode(dest map[string]interface{}, src interface{}) error {
+	v := reflect.ValueOf(src)
+
+	if v.Kind() == reflect.Pointer && v.Elem().Kind() == reflect.Map {
+		if convertToMapStringAny(v.Elem(), dest) {
+			return nil
+		}
+	}
+	if v.Kind() == reflect.Map {
+		if convertToMapStringAny(v, dest) {
+			return nil
+		}
+	}
+
 	return runtimescan.Encode(src, "twowaysql", &encoder{
 		dest: dest,
 	})
+}
+
+func convertToMapStringAny(mp reflect.Value, dest map[string]interface{}) bool {
+	if mp.Type().Key().Kind() != reflect.String {
+		return false
+	}
+	for _, k := range mp.MapKeys() {
+		dest[k.String()] = mp.MapIndex(k).Interface()
+	}
+	return true
 }
