@@ -659,3 +659,43 @@ func interfaceSliceEqual(got, want []interface{}) bool {
 	}
 	return true
 }
+
+func TestEvalWithMap(t *testing.T) {
+	tests := []struct {
+		name        string
+		input       string
+		inputParams map[string]interface{}
+		wantQuery   string
+		wantParams  []interface{}
+	}{
+		{
+			name:  "bind parameter",
+			input: `SELECT * FROM person WHERE employee_no < /*maxEmpNo*/1000`,
+			inputParams: map[string]interface{}{
+				"name":       "Jeff",
+				"maxEmpNo":   3,
+				"deptNo":     12,
+				"genderList": []string{"M", "F"},
+				"intList":    []int{1, 2, 3},
+			},
+			wantQuery:  `SELECT * FROM person WHERE employee_no < ?/*maxEmpNo*/`,
+			wantParams: []interface{}{3},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if query, params, err := Eval(tt.input, &tt.inputParams); err != nil || query != tt.wantQuery || !interfaceSliceEqual(params, tt.wantParams) {
+				if err != nil {
+					t.Error(err)
+				}
+				if query != tt.wantQuery {
+					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantQuery, query)
+				}
+				if !interfaceSliceEqual(params, tt.wantParams) {
+					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, params)
+				}
+			}
+		})
+	}
+}
