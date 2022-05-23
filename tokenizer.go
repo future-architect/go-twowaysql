@@ -23,6 +23,7 @@ type token struct {
 	str       string
 	value     string /* for Bind */
 	condition string /* for IF/ELIF */
+	no        int
 }
 
 // tokenizeは文字列を受け取ってトークンの列を返す
@@ -129,6 +130,10 @@ func tokenize(str string) ([]token, error) {
 	tokens = append(tokens, token{
 		kind: tkEndOfProgram,
 	})
+
+	for i := range tokens {
+		tokens[i].no = i
+	}
 	return tokens, nil
 }
 

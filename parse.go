@@ -8,7 +8,7 @@ import (
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
 func (t *tree) parse(params map[string]interface{}) ([]token, error) {
-	return  genInner(t, params)
+	return genInner(t, params)
 }
 
 func genInner(node *tree, params map[string]interface{}) ([]token, error) {
