@@ -31,37 +31,15 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	// tree, err := ast(tokens)
-	// if err != nil {
-	// 	return "", nil, err
-	// }
-	// tree.print(token{no: -1}, "T", "")
-
-	// generatedTokens, err := tree.parse(mapParams)
-	// if err != nil {
-	// 	return "", nil, err
-	// }
-	// fmt.Println(generatedTokens)
-	// fmt.Println(mapParams)
-	nodeGroups, err := splitNodeGroup(tokens)
+	generatedTokens, err := splitNodeGroup(tokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}
-	var generatedTokens []token
-	for _, v := range nodeGroups {
-		t, err := v.parse(mapParams)
-		if err != nil {
-			return "", nil, err
-		}
-		generatedTokens = append(generatedTokens, t...)
-	}
-	fmt.Printf("gt %v\n", generatedTokens)
 
 	convertedQuery, params, err := build(generatedTokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}
-	fmt.Printf("cq: %v\n", convertedQuery)
 
 	return arrangeWhiteSpace(convertedQuery), params, nil
 }

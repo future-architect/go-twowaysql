@@ -344,6 +344,64 @@ func TestEval(t *testing.T) {
 			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
 			wantParams: []interface{}{1000, 10},
 		},
+		{
+			name: "multiple nest if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF name !== null */
+					/* IF EmpNo !== null */
+					AND employee_no <   /*EmpNo*/'0001'
+					/* END */
+					/* IF maxEmpNo !== null */
+					AND id =   /*maxEmpNo*/'0002'
+					/* END */
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
+		{
+			name: "multiple 4 nest if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF name !== null */
+					/* IF name !== null */
+						/* IF name !== null */
+							/* IF name !== null */
+								/* IF EmpNo !== null */
+								AND employee_no <   /*EmpNo*/'0001'
+								/* ELSE */
+								AND 1=1
+								/* END */
+								/* IF maxEmpNo !== null */
+								AND id =   /*maxEmpNo*/'0002'
+								/* END */
+							/* END */
+						/* END */
+					/* END */
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
 	}
 
 	for _, tt := range tests {
