@@ -33,8 +33,24 @@ func splitNodeGroup(tokens []token) ([]nodeGroup, error) {
 		res = append(res, ng)
 
 		tmp = []token{}
+		ifstack := []tokenKind{}
+		ifidx := idx
 		for {
+			if tokens[idx].kind == tkIf && idx != ifidx {
+				ifstack = append(ifstack, tokens[idx].kind)
+				tmp = append(tmp, tokens[idx])
+				idx++
+				continue
+			}
 			if tokens[idx].kind != tkEnd {
+				tmp = append(tmp, tokens[idx])
+				idx++
+				continue
+			}
+
+			// tkEnd
+			if len(ifstack) > 0 {
+				ifstack = ifstack[0 : len(ifstack)-1]
 				tmp = append(tmp, tokens[idx])
 				idx++
 				continue

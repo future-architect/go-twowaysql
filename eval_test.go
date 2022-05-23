@@ -322,6 +322,28 @@ func TestEval(t *testing.T) {
 				3,
 			},
 		},
+		{
+			name: "multiple if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF EmpNo !== null */
+				 AND employee_no <   /*EmpNo*/'0001'
+				/* END */
+				/* IF maxEmpNo !== null */
+				 AND id =   /*maxEmpNo*/'0002'
+				/* END */
+			`,
+			inputParams: Info{
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
 	}
 
 	for _, tt := range tests {
