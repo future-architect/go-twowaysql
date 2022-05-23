@@ -61,8 +61,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 	if err != nil {
 		return "", nil, err
 	}
-	fmt.Println(convertedQuery)
-	fmt.Println(params)
+	fmt.Printf("cq: %v\n", convertedQuery)
 
 	return arrangeWhiteSpace(convertedQuery), params, nil
 }
