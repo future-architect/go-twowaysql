@@ -26,7 +26,7 @@ func parseCondition(tokens []token, mapParams map[string]interface{}) ([]token, 
 		tokenGroups = append(tokenGroups, ng)
 		tmpTokens = []token{}
 
-		iftokenGroup, err := parseIftokens(tokens, &idx, mapParams)
+		iftokenGroup, err := parseIftokenGroup(tokens, &idx, mapParams)
 		if err != nil {
 			return nil, err
 		}
@@ -57,8 +57,8 @@ func parseCondition(tokens []token, mapParams map[string]interface{}) ([]token, 
 	return generatedTokens, nil
 }
 
-func parseIftokens(tokens []token, idx *int, mapParams map[string]interface{}) ([]token, error) {
-	tmp := []token{}
+func parseIftokenGroup(tokens []token, idx *int, mapParams map[string]interface{}) ([]token, error) {
+	tmpTokens := []token{}
 	iftokenGroup := []token{tokens[*idx]} // IF
 	*idx++
 	for {
@@ -67,17 +67,17 @@ func parseIftokens(tokens []token, idx *int, mapParams map[string]interface{}) (
 		}
 		// nest IF
 		if tokens[*idx].kind == tkIf {
-			nestTokens, err := parseIftokens(tokens, idx, mapParams)
+			nestTokens, err := parseIftokenGroup(tokens, idx, mapParams)
 			if err != nil {
 				return nil, err
 			}
-			tmp = append(tmp, nestTokens...)
+			tmpTokens = append(tmpTokens, nestTokens...)
 			// idx は parseIftokens 内で進んでいるためプラスしない
 			continue
 		}
 		// ELSE/ELIF
 		if tokens[*idx].kind == tkElse || tokens[*idx].kind == tkElif {
-			nestTokens, err := parseCondition(tmp, mapParams)
+			nestTokens, err := parseCondition(tmpTokens, mapParams)
 			if err != nil {
 				return nil, err
 			}
@@ -85,24 +85,24 @@ func parseIftokens(tokens []token, idx *int, mapParams map[string]interface{}) (
 			if len(nestTokens) > 0 && nestTokens[len(nestTokens)-1].kind == tkEndOfProgram {
 				nestTokens = nestTokens[0 : len(nestTokens)-1]
 			}
-			tmp = nestTokens
-			tmp = append(tmp, tokens[*idx]) // ELSE/ELIF を追加
-			iftokenGroup = append(iftokenGroup, tmp...)
-			tmp = []token{}
+			tmpTokens = nestTokens
+			tmpTokens = append(tmpTokens, tokens[*idx]) // ELSE/ELIF を追加
+			iftokenGroup = append(iftokenGroup, tmpTokens...)
+			tmpTokens = []token{}
 			*idx++
 			continue
 		}
 
 		if tokens[*idx].kind != tkEnd {
-			tmp = append(tmp, tokens[*idx])
+			tmpTokens = append(tmpTokens, tokens[*idx])
 			*idx++
 			continue
 		}
 
 		// END
-		iftokenGroup = append(iftokenGroup, tmp...)       // IF ブロック内
+		iftokenGroup = append(iftokenGroup, tmpTokens...)       // IF ブロック内
 		iftokenGroup = append(iftokenGroup, tokens[*idx]) // END
-		tmp = []token{}
+		tmpTokens = []token{}
 		*idx++
 		break
 	}
