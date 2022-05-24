@@ -56,16 +56,23 @@ func build(tokens []token, inputParams map[string]interface{}) (string, []interf
 	for _, token := range tokens {
 		if token.kind == tkBind {
 			if elem, ok := inputParams[token.value]; ok {
-				switch slice := elem.(type) {
+				switch elemTyp := elem.(type) {
 				case []string:
-					token.str = bindLiterals(token.str, len(slice))
-					for _, value := range slice {
+					token.str = bindLiterals(token.str, len(elemTyp))
+					for _, value := range elemTyp {
 						params = append(params, value)
 					}
 				case []int:
-					token.str = bindLiterals(token.str, len(slice))
-					for _, value := range slice {
+					token.str = bindLiterals(token.str, len(elemTyp))
+					for _, value := range elemTyp {
 						params = append(params, value)
+					}
+				case [][]interface{}:
+					token.str = bindTable(token.str, len(elemTyp), len(elemTyp[0]))
+					for _, rows := range elemTyp {
+						for _, columns := range rows {
+							params = append(params, columns)
+						}
 					}
 				default:
 					params = append(params, elem)
@@ -95,6 +102,34 @@ func bindLiterals(str string, number int) string {
 	b.WriteRune(')')
 
 	return fmt.Sprint(b.String(), str)
+}
+
+func bindTable(str string, rowNumber, columnNumber int) string {
+	str = strings.TrimLeftFunc(str, func(r rune) bool {
+		return r != unicode.SimpleFold('/')
+	})
+
+	var column strings.Builder
+	column.WriteRune('(')
+	for i := 0; i < columnNumber; i++ {
+		column.WriteRune('?')
+		if i != columnNumber-1 {
+			column.WriteString(", ")
+		}
+	}
+	column.WriteRune(')')
+
+	var row strings.Builder
+	row.WriteRune('(')
+	for i := 0; i < rowNumber; i++ {
+		row.WriteString(column.String())
+		if i != rowNumber-1 {
+			row.WriteString(", ")
+		}
+	}
+	row.WriteRune(')')
+
+	return fmt.Sprint(row.String(), str)
 }
 
 func formatQuery(query string) string {

@@ -76,9 +76,23 @@ func tokenize(str string) ([]token, error) {
 			if tok.kind == 0 {
 				tok.kind = tkBind
 				if quote := str[index]; quote == '(' {
-					// /* ... */( ... )
+					// /* ... */( ... ) or /* ... */( (...), (...) )
+					var quoteStack []interface{}
 					index++
-					for index < length && str[index] != ')' {
+					for index < length {
+						if str[index] == '(' {
+							quoteStack = append(quoteStack, struct{}{})
+							index++
+							continue
+						}
+						if str[index] == ')' {
+							if len(quoteStack) == 0 {
+								break
+							}
+							quoteStack = quoteStack[0 : len(quoteStack)-1]
+							index++
+							continue
+						}
 						index++
 					}
 					if str[index] != ')' {
