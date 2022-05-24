@@ -20,28 +20,22 @@ func parseCondition(tokens []token, mapParams map[string]interface{}) ([]token, 
 			idx++
 			continue
 		}
-		ng := tokenGroup{
-			tokens: tmpTokens,
-		}
-		tokenGroups = append(tokenGroups, ng)
+		tokenGroups = append(tokenGroups, tokenGroup{tokens: tmpTokens})
 		tmpTokens = []token{}
 
 		iftokenGroup, err := parseIftokenGroup(tokens, &idx, mapParams)
 		if err != nil {
 			return nil, err
 		}
-		ng = tokenGroup{
-			tokens: iftokenGroup,
-		}
-		tokenGroups = append(tokenGroups, ng)
+		tokenGroups = append(tokenGroups, tokenGroup{tokens: iftokenGroup})
 	}
 	if len(tmpTokens) != 0 {
 		tokenGroups = append(tokenGroups, tokenGroup{tokens: tmpTokens})
 	}
 
 	var generatedTokens []token
-	for _, taskGroup := range tokenGroups {
-		generatedTokens = append(generatedTokens, taskGroup.tokens...)
+	for _, tg := range tokenGroups {
+		generatedTokens = append(generatedTokens, tg.tokens...)
 	}
 
 	if generatedTokens[len(generatedTokens)-1].kind != tkEndOfProgram {
@@ -100,7 +94,7 @@ func parseIftokenGroup(tokens []token, idx *int, mapParams map[string]interface{
 		}
 
 		// END
-		iftokenGroup = append(iftokenGroup, tmpTokens...)       // IF ブロック内
+		iftokenGroup = append(iftokenGroup, tmpTokens...) // IF ブロック内
 		iftokenGroup = append(iftokenGroup, tokens[*idx]) // END
 		tmpTokens = []token{}
 		*idx++
