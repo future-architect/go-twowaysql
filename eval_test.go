@@ -345,6 +345,28 @@ func TestEval(t *testing.T) {
 			wantParams: []interface{}{1000, 10},
 		},
 		{
+			name: "multiple if false condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF false */
+				 AND employee_no <   /*EmpNo*/'0001'
+				/* END */
+				/* IF maxEmpNo !== null */
+				 AND id =   /*maxEmpNo*/'0002'
+				/* END */
+			`,
+			inputParams: Info{
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{10},
+		},
+		{
 			name: "multiple nest if condition",
 			input: `
 			SELECT
@@ -689,7 +711,7 @@ func TestGenerateAbnormal(t *testing.T) {
 		{
 			name:      "no END",
 			input:     `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
-			wantError: "can not parse: expected /* END */, but got 7",
+			wantError: "can not parse: not found /* END */",
 		},
 		{
 			name:      "extra END 1",

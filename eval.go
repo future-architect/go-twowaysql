@@ -31,7 +31,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	generatedTokens, err := splitNodeGroup(tokens, mapParams)
+	generatedTokens, err := parseCondition(tokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}
