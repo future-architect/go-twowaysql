@@ -26,7 +26,7 @@ type tree struct {
 }
 
 // astはトークン列から抽象構文木を生成する。
-// 生成規則: （自信はない)
+// 生成規則:
 // program = stmt
 // stmt = 	SQLStmt stmt |
 //			BIND	stmt |

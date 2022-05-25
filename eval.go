@@ -31,12 +31,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		return "", nil, err
 	}
 
-	tree, err := ast(tokens)
-	if err != nil {
-		return "", nil, err
-	}
-
-	generatedTokens, err := tree.parse(mapParams)
+	generatedTokens, err := parseCondition(tokens, mapParams)
 	if err != nil {
 		return "", nil, err
 	}

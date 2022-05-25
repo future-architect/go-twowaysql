@@ -129,6 +129,7 @@ func tokenize(str string) ([]token, error) {
 	tokens = append(tokens, token{
 		kind: tkEndOfProgram,
 	})
+
 	return tokens, nil
 }
 

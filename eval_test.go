@@ -322,6 +322,206 @@ func TestEval(t *testing.T) {
 				3,
 			},
 		},
+		{
+			name: "multiple if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF EmpNo !== null */
+				 AND employee_no <   /*EmpNo*/'0001'
+				/* END */
+				/* IF maxEmpNo !== null */
+				 AND id =   /*maxEmpNo*/'0002'
+				/* END */
+				/* IF deptNo !== null */
+				 AND dept_no =   /*deptNo*/1
+				/* END */
+				/* IF firstName !== null */
+				 AND first_name =   /*firstName*/'first_name'
+				/* END */
+				/* IF lastName !== null */
+				 AND last_name =   /*lastName*/'last_name'
+				/* END */
+				/* IF email !== null */
+				 AND email =   /*email*/'email'
+				/* END */
+				/* IF gender_list !== null */
+				 AND gender_list IN /*gender_list*/('01', '02', '03')
+				/* END */
+			`,
+			inputParams: Info{
+				EmpNo:      1000,
+				MaxEmpNo:   10,
+				DeptNo:     1,
+				FirstName:  "first",
+				LastName:   "last",
+				Email:      "email",
+				GenderList: []string{"f", "m", "o"},
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/ AND dept_no = ?/*deptNo*/ AND first_name = ?/*firstName*/ AND last_name = ?/*lastName*/ AND email = ?/*email*/ AND gender_list IN (?, ?, ?)/*gender_list*/`,
+			wantParams: []interface{}{1000, 10, 1, "first", "last", "email", "f", "m", "o"},
+		},
+		{
+			name: "multiple if false condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF false */
+				 AND employee_no <   /*EmpNo*/'0001'
+				/* END */
+				/* IF maxEmpNo !== null */
+				 AND id =   /*maxEmpNo*/'0002'
+				/* END */
+			`,
+			inputParams: Info{
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{10},
+		},
+		{
+			name: "multiple nest if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF name !== null */
+					/* IF EmpNo !== null */
+						AND employee_no <   /*EmpNo*/'0001'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+					/* IF maxEmpNo !== null */
+						AND id =   /*maxEmpNo*/'0002'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+				/* ELIF false */
+					AND employee_no < 100
+				/* ELSE */
+					AND employee_no < 1000
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
+		{
+			name: "multiple nest elif condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF false */
+					AND employee_no < 100
+				/* ELIF true */
+					/* IF EmpNo !== null */
+						AND employee_no <   /*EmpNo*/'0001'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+					/* IF maxEmpNo !== null */
+						AND id =   /*maxEmpNo*/'0002'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+				/* ELSE */
+					AND employee_no < 1000
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
+		{
+			name: "multiple nest if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF false */
+					AND employee_no < 100
+				/* ELIF false */
+					AND employee_no < 1000
+				/* ELSE */
+					/* IF EmpNo !== null */
+						AND employee_no <   /*EmpNo*/'0001'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+					/* IF maxEmpNo !== null */
+						AND id =   /*maxEmpNo*/'0002'
+					/* ELSE */
+						AND employee_no < 1000
+					/* END */
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{1000, 10},
+		},
+		{
+			name: "multiple 4 nest if condition",
+			input: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				/* IF name !== null */
+					/* IF name !== null */
+						/* IF name !== null */
+							/* IF false */
+								2=2
+							/* ELSE */
+								/* IF EmpNo === null */
+									AND employee_no <   /*EmpNo*/'0001'
+								/* ELSE */
+									AND employee_no < 222
+								/* END */
+								/* IF false */
+									AND id =   1
+								/* ELIF maxEmpNo !== null */
+									AND id =   /*maxEmpNo*/'0002'
+								/* END */
+							/* END */
+						/* END */
+					/* END */
+				/* END */
+			`,
+			inputParams: Info{
+				Name:     "x",
+				EmpNo:    1000,
+				MaxEmpNo: 10,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < 222 AND id = ?/*maxEmpNo*/`,
+			wantParams: []interface{}{10},
+		},
 	}
 
 	for _, tt := range tests {
@@ -609,7 +809,7 @@ func TestGenerateAbnormal(t *testing.T) {
 		{
 			name:      "no END",
 			input:     `SELECT * FROM person WHERE employee_no < 1000 /* IF true */ AND dept_no = 1`,
-			wantError: "can not parse: expected /* END */, but got 7",
+			wantError: "can not parse: not found /* END */",
 		},
 		{
 			name:      "extra END 1",

@@ -1,14 +1,129 @@
 package twowaysql
 
 import (
+	"fmt"
+
 	"github.com/robertkrimen/otto"
 )
+
+type tokenGroup struct {
+	tokens []token
+}
+
+func parseCondition(tokens []token, mapParams map[string]interface{}) ([]token, error) {
+	var tokenGroups []tokenGroup
+	var tmpTokens []token
+	var idx int
+	for idx < len(tokens) {
+		if tokens[idx].kind != tkIf {
+			tmpTokens = append(tmpTokens, tokens[idx])
+			idx++
+			continue
+		}
+		tokenGroups = append(tokenGroups, tokenGroup{tokens: tmpTokens})
+		tmpTokens = []token{}
+
+		iftokenGroup, err := parseIftokenGroup(tokens, &idx, mapParams)
+		if err != nil {
+			return nil, err
+		}
+		tokenGroups = append(tokenGroups, tokenGroup{tokens: iftokenGroup})
+	}
+	if len(tmpTokens) != 0 {
+		tokenGroups = append(tokenGroups, tokenGroup{tokens: tmpTokens})
+	}
+
+	var generatedTokens []token
+	for _, tg := range tokenGroups {
+		generatedTokens = append(generatedTokens, tg.tokens...)
+	}
+
+	if generatedTokens[len(generatedTokens)-1].kind != tkEndOfProgram {
+		// 末尾に EndOfProgram を追加
+		generatedTokens = append(generatedTokens, token{kind: tkEndOfProgram})
+	}
+	// 構文エラーチェックのため生成 token 全体でも解析を行う
+	_, err := ast(generatedTokens)
+	if err != nil {
+		return nil, err
+	}
+
+	return generatedTokens, nil
+}
+
+func parseIftokenGroup(tokens []token, idx *int, mapParams map[string]interface{}) ([]token, error) {
+	tmpTokens := []token{}
+	iftokenGroup := []token{tokens[*idx]} // IF
+	*idx++
+	for {
+		if *idx >= len(tokens) {
+			return nil, fmt.Errorf("can not parse: not found /* END */")
+		}
+		// nest IF
+		if tokens[*idx].kind == tkIf {
+			nestTokens, err := parseIftokenGroup(tokens, idx, mapParams)
+			if err != nil {
+				return nil, err
+			}
+			tmpTokens = append(tmpTokens, nestTokens...)
+			// idx は parseIftokens 内で進んでいるためプラスしない
+			continue
+		}
+		// ELSE/ELIF
+		if tokens[*idx].kind == tkElse || tokens[*idx].kind == tkElif {
+			nestTokens, err := parseCondition(tmpTokens, mapParams)
+			if err != nil {
+				return nil, err
+			}
+			// ネストしたブロックを解析する際に末尾に EndOfProgram が付与されるため除去
+			if len(nestTokens) > 0 && nestTokens[len(nestTokens)-1].kind == tkEndOfProgram {
+				nestTokens = nestTokens[0 : len(nestTokens)-1]
+			}
+			tmpTokens = nestTokens
+			tmpTokens = append(tmpTokens, tokens[*idx]) // ELSE/ELIF を追加
+			iftokenGroup = append(iftokenGroup, tmpTokens...)
+			tmpTokens = []token{}
+			*idx++
+			continue
+		}
+
+		if tokens[*idx].kind != tkEnd {
+			tmpTokens = append(tmpTokens, tokens[*idx])
+			*idx++
+			continue
+		}
+
+		// END
+		iftokenGroup = append(iftokenGroup, tmpTokens...) // IF ブロック内
+		iftokenGroup = append(iftokenGroup, tokens[*idx]) // END
+		tmpTokens = []token{}
+		*idx++
+		break
+	}
+
+	// IF ブロックのみで解析するため、末尾に EndOfProgram を追加
+	iftokenGroup = append(iftokenGroup, token{kind: tkEndOfProgram})
+	tree, err := ast(iftokenGroup)
+	if err != nil {
+		return nil, err
+	}
+	generatedTokens, err := tree.parse(mapParams)
+	if err != nil {
+		return nil, err
+	}
+	if len(generatedTokens) > 0 && generatedTokens[len(generatedTokens)-1].kind == tkEndOfProgram {
+		// 末尾の EndOfProgram を除去
+		generatedTokens = generatedTokens[0 : len(generatedTokens)-1]
+	}
+
+	return generatedTokens, nil
+}
 
 // 抽象構文木からトークン列を生成
 // 左部分木、右部分木と辿る
 // 現状右部分木を持つのはif, elif, elseだけ?
 func (t *tree) parse(params map[string]interface{}) ([]token, error) {
-	return  genInner(t, params)
+	return genInner(t, params)
 }
 
 func genInner(node *tree, params map[string]interface{}) ([]token, error) {
