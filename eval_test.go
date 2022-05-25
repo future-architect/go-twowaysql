@@ -5,19 +5,20 @@ import (
 )
 
 type Info struct {
-	Name       string      `twowaysql:"name"`
-	EmpNo      int         `twowaysql:"EmpNo"`
-	MaxEmpNo   int         `twowaysql:"maxEmpNo"`
-	DeptNo     int         `twowaysql:"deptNo"`
-	FirstName  string      `twowaysql:"firstName"`
-	LastName   string      `twowaysql:"lastName"`
-	Email      string      `twowaysql:"email"`
-	GenderList []string    `twowaysql:"gender_list"`
-	IntList    []int       `twowaysql:"int_list"`
-	Checked    bool        `twowaysql:"checked"`
-	Unchecked  bool        `twowaysql:"unchecked"`
-	Nil        interface{} `twowaysql:"nil"`
-	Zero       int         `twowaysql:"zero"`
+	Name       string          `twowaysql:"name"`
+	EmpNo      int             `twowaysql:"EmpNo"`
+	MaxEmpNo   int             `twowaysql:"maxEmpNo"`
+	DeptNo     int             `twowaysql:"deptNo"`
+	FirstName  string          `twowaysql:"firstName"`
+	LastName   string          `twowaysql:"lastName"`
+	Email      string          `twowaysql:"email"`
+	GenderList []string        `twowaysql:"gender_list"`
+	IntList    []int           `twowaysql:"int_list"`
+	Checked    bool            `twowaysql:"checked"`
+	Unchecked  bool            `twowaysql:"unchecked"`
+	Nil        interface{}     `twowaysql:"nil"`
+	Zero       int             `twowaysql:"zero"`
+	Table      [][]interface{} `twowaysql:"table"`
 }
 
 func TestEval(t *testing.T) {
@@ -177,6 +178,29 @@ func TestEval(t *testing.T) {
 			wantParams: []interface{}{
 				"M",
 				"F",
+			},
+		},
+		{
+			name:  "in bind table",
+			input: `SELECT * FROM person WHERE employee_no = /*maxEmpNo*/1000 /* IF table !== undefined */ AND (person.gender, person.Name) in /*table*/(('M', 'Jeff'), ('F', 'Jeff')) /* END */`,
+			inputParams: Info{
+				Name:       "Jeff",
+				MaxEmpNo:   3,
+				DeptNo:     12,
+				GenderList: []string{"M", "F"},
+				IntList:    []int{1, 2, 3},
+				Table: [][]interface{}{
+					{"M", "Tom"},
+					{"F", "Tom"},
+				},
+			},
+			wantQuery: `SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND (person.gender, person.Name) in ((?, ?), (?, ?))/*table*/`,
+			wantParams: []interface{}{
+				3,
+				"M",
+				"Tom",
+				"F",
+				"Tom",
 			},
 		},
 		{
@@ -880,6 +904,29 @@ func TestEvalWithMap(t *testing.T) {
 			},
 			wantQuery:  `SELECT * FROM person WHERE employee_no < ?/*maxEmpNo*/`,
 			wantParams: []interface{}{3},
+		},
+		{
+			name:  "bind nil parameter",
+			input: `SELECT * FROM person WHERE 1=1 /* IF genderList !== undefined */ AND gender_list IN /*genderList*/('M', 'F') /* END */`,
+			inputParams: map[string]interface{}{
+				"genderList": nil,
+			},
+			wantQuery:  `SELECT * FROM person WHERE 1=1`,
+			wantParams: []interface{}{},
+		},
+		{
+			name:  "bind table parameter",
+			input: `SELECT * FROM person WHERE name = /*name*/'name' AND (a, b) IN /*table*/(('x', 10), ('y', 11))`,
+			inputParams: map[string]interface{}{
+				"name": "Jeff",
+				"table": [][]interface{}{
+					{"a", 1},
+					{"b", 2},
+					{"c", 3},
+				},
+			},
+			wantQuery:  `SELECT * FROM person WHERE name = ?/*name*/ AND (a, b) IN ((?, ?), (?, ?), (?, ?))/*table*/`,
+			wantParams: []interface{}{"Jeff", "a", 1, "b", 2, "c", 3},
 		},
 	}
 
