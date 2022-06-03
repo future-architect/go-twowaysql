@@ -113,7 +113,7 @@ func tokenize(str string) ([]token, error) {
 					}
 					index++
 				} else {
-					for index < length && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
+					for index < length && str[index] != '\t' && str[index] != '\n' && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
 						index++
 					}
 				}
