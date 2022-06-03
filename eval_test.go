@@ -2,6 +2,9 @@ package twowaysql
 
 import (
 	"testing"
+
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/assert/cmp"
 )
 
 type Info struct {
@@ -235,8 +238,18 @@ func TestEval(t *testing.T) {
 				/* END */
 			`,
 			inputParams: Info{},
-			wantQuery:   `SELECT * FROM person WHERE employee_no < 1000 AND dept_no = 1`,
-			wantParams:  []interface{}{},
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no < 1000
+				
+				AND dept_no = 1
+				
+			`,
+			wantParams: []interface{}{},
 		},
 		{
 			name: "multiline if false elif false else",
@@ -270,7 +283,17 @@ func TestEval(t *testing.T) {
 				GenderList: []string{"M", "F"},
 				IntList:    []int{1, 2, 3},
 			},
-			wantQuery:  `SELECT * FROM person WHERE employee_no < 1000 AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no < 1000
+				
+				AND id = ?/*maxEmpNo*/
+				
+			`,
 			wantParams: []interface{}{3},
 		},
 		{
@@ -311,7 +334,19 @@ func TestEval(t *testing.T) {
 				GenderList: []string{"M", "F"},
 				IntList:    []int{1, 2, 3},
 			},
-			wantQuery:  `SELECT * FROM person WHERE employee_no < 1000 AND id = 3`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no	<	1000
+				
+					
+					AND	id			=	3
+					
+				
+			`,
 			wantParams: []interface{}{},
 		},
 		{
@@ -338,7 +373,17 @@ func TestEval(t *testing.T) {
 				GenderList: []string{"M", "F"},
 				IntList:    []int{1, 2, 3},
 			},
-			wantQuery: `SELECT * FROM person WHERE employee_no = ?/*maxEmpNo*/ AND person.gender in (?, ?, ?)/*int_list*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE
+				employee_no		=	?/*maxEmpNo*/
+				
+				AND	person.gender	in	(?, ?, ?)/*int_list*/
+				
+			`,
 			wantParams: []interface{}{
 				3,
 				1,
@@ -385,7 +430,34 @@ func TestEval(t *testing.T) {
 				Email:      "email",
 				GenderList: []string{"f", "m", "o"},
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/ AND dept_no = ?/*deptNo*/ AND first_name = ?/*firstName*/ AND last_name = ?/*lastName*/ AND email = ?/*email*/ AND gender_list IN (?, ?, ?)/*gender_list*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+				 AND employee_no < ?/*EmpNo*/
+				
+				
+				 AND id = ?/*maxEmpNo*/
+				
+				
+				 AND dept_no = ?/*deptNo*/
+				
+				
+				 AND first_name = ?/*firstName*/
+				
+				
+				 AND last_name = ?/*lastName*/
+				
+				
+				 AND email = ?/*email*/
+				
+				
+				 AND gender_list IN (?, ?, ?)/*gender_list*/
+				
+			`,
 			wantParams: []interface{}{1000, 10, 1, "first", "last", "email", "f", "m", "o"},
 		},
 		{
@@ -407,7 +479,17 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+				
+				 AND id = ?/*maxEmpNo*/
+				
+			`,
 			wantParams: []interface{}{10},
 		},
 		{
@@ -440,7 +522,21 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+					
+						AND employee_no < ?/*EmpNo*/
+					
+					
+						AND id = ?/*maxEmpNo*/
+					
+				
+			`,
 			wantParams: []interface{}{1000, 10},
 		},
 		{
@@ -473,7 +569,21 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+					
+						AND employee_no < ?/*EmpNo*/
+					
+					
+						AND id = ?/*maxEmpNo*/
+					
+				
+			`,
 			wantParams: []interface{}{1000, 10},
 		},
 		{
@@ -506,7 +616,21 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+					
+						AND employee_no < ?/*EmpNo*/
+					
+					
+						AND id = ?/*maxEmpNo*/
+					
+				
+			`,
 			wantParams: []interface{}{1000, 10},
 		},
 		{
@@ -543,24 +667,68 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < 222 AND id = ?/*maxEmpNo*/`,
+			wantQuery: `
+			SELECT
+				*
+			FROM
+				person
+			WHERE	1=1
+				
+					
+						
+							
+								
+									AND employee_no < 222
+								
+								
+									AND id = ?/*maxEmpNo*/
+								
+							
+						
+					
+				
+			`,
 			wantParams: []interface{}{10},
+		},
+		{
+			name: "comment",
+			input: `
+			-- header comment
+			SELECT -- inner comment
+				* -- inner comment
+			FROM -- inner comment
+				person -- inner comment
+			WHERE -- inner comment
+				employee_no < 1000 -- inner comment
+				/* IF true */ -- inner comment
+				AND dept_no = 1 -- inner comment
+				/* END */ -- inner comment
+			-- footer comment
+			`,
+			inputParams: Info{},
+			wantQuery: `
+			-- header comment
+			SELECT -- inner comment
+				* -- inner comment
+			FROM -- inner comment
+				person -- inner comment
+			WHERE -- inner comment
+				employee_no < 1000 -- inner comment
+				 -- inner comment
+				AND dept_no = 1 -- inner comment
+				 -- inner comment
+			-- footer comment
+			`,
+			wantParams: []interface{}{},
 		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			if query, params, err := Eval(tt.input, &tt.inputParams); err != nil || query != tt.wantQuery || !interfaceSliceEqual(params, tt.wantParams) {
-				if err != nil {
-					t.Error(err)
-				}
-				if query != tt.wantQuery {
-					t.Errorf("Doesn't Match\nexpected: \n%s\n but got: \n%s\n", tt.wantQuery, query)
-				}
-				if !interfaceSliceEqual(params, tt.wantParams) {
-					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, params)
-				}
-			}
+			query, params, err := Eval(tt.input, &tt.inputParams)
+			assert.NilError(t, err)
+			assert.Check(t, cmp.DeepEqual(tt.wantParams, params))
+			assert.Check(t, cmp.DeepEqual(tt.wantQuery, query))
 		})
 	}
 }

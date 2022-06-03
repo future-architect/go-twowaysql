@@ -113,7 +113,7 @@ func tokenize(str string) ([]token, error) {
 					}
 					index++
 				} else {
-					for index < length && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
+					for index < length && str[index] != '\t' && str[index] != '\n' && str[index] != ' ' && str[index] != ',' && str[index] != ')' {
 						index++
 					}
 				}
@@ -168,6 +168,8 @@ func bindLiteral(str string) string {
 func retrieveCondition(kind tokenKind, str string) string {
 	str = removeCommentSymbol(str)
 	str = strings.Trim(str, " ")
+	str = strings.Trim(str, "\n")
+	str = strings.Trim(str, "\t")
 	switch kind {
 	case tkIf:
 		str = strings.TrimPrefix(str, "IF")
