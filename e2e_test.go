@@ -45,7 +45,20 @@ func TestSelect(t *testing.T) {
 		},
 	}
 
-	err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE employee_no < /*maxEmpNo*/1000 /* IF deptNo */ AND dept_no < /*deptNo*/1 /* END */`, &params)
+	sql := `-- comment
+		SELECT
+			first_name
+		,	last_name
+		,	email
+		FROM
+			persons
+		WHERE
+			employee_no	<	/*maxEmpNo*/1000 -- comment
+			/* IF deptNo */
+			AND	dept_no		<	/*deptNo*/1
+			/* END */
+		-- comment`
+	err := tw.Select(ctx, &people, sql, &params)
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}

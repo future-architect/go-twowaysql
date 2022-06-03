@@ -695,6 +695,37 @@ func TestEval(t *testing.T) {
 			`,
 			wantParams: []interface{}{10},
 		},
+		{
+			name: "comment",
+			input: `
+			-- header comment
+			SELECT -- inner comment
+				* -- inner comment
+			FROM -- inner comment
+				person -- inner comment
+			WHERE -- inner comment
+				employee_no < 1000 -- inner comment
+				/* IF true */ -- inner comment
+				AND dept_no = 1 -- inner comment
+				/* END */ -- inner comment
+			-- footer comment
+			`,
+			inputParams: Info{},
+			wantQuery: `
+			-- header comment
+			SELECT -- inner comment
+				* -- inner comment
+			FROM -- inner comment
+				person -- inner comment
+			WHERE -- inner comment
+				employee_no < 1000 -- inner comment
+				 -- inner comment
+				AND dept_no = 1 -- inner comment
+				 -- inner comment
+			-- footer comment
+			`,
+			wantParams: []interface{}{},
+		},
 	}
 
 	for _, tt := range tests {
