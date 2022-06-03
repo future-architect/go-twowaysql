@@ -16,8 +16,6 @@ import (
 func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, error) {
 	mapParams := map[string]interface{}{}
 
-	query := formatQuery(inputQuery)
-
 	if inputParams != nil {
 		if err := encode(mapParams, inputParams); err != nil {
 			return "", nil, err
@@ -26,7 +24,7 @@ func Eval(inputQuery string, inputParams interface{}) (string, []interface{}, er
 		mapParams = nil
 	}
 
-	tokens, err := tokenize(query)
+	tokens, err := tokenize(inputQuery)
 	if err != nil {
 		return "", nil, err
 	}
@@ -125,13 +123,6 @@ func bindTable(str string, rowNumber, columnNumber int) string {
 	row.WriteRune(')')
 
 	return fmt.Sprint(row.String(), str)
-}
-
-func formatQuery(query string) string {
-	query = strings.ReplaceAll(query, "\n", " ")
-	query = strings.ReplaceAll(query, "\t", " ")
-	query = strings.TrimSpace(query)
-	return query
 }
 
 // 空白が二つ以上続いていたら一つにする。=1 -> = 1のような変換はできない
