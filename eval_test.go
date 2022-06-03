@@ -334,7 +334,6 @@ func TestEval(t *testing.T) {
 				GenderList: []string{"M", "F"},
 				IntList:    []int{1, 2, 3},
 			},
-			// wantQuery:  `SELECT * FROM person WHERE employee_no < 1000 AND id = 3`,
 			wantQuery: `
 			SELECT
 				*
@@ -480,7 +479,6 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			// wantQuery:  `SELECT * FROM person WHERE 1=1 AND id = ?/*maxEmpNo*/`,
 			wantQuery: `
 			SELECT
 				*
@@ -524,7 +522,6 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			// wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
 			wantQuery: `
 			SELECT
 				*
@@ -572,7 +569,6 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			// wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < ?/*EmpNo*/ AND id = ?/*maxEmpNo*/`,
 			wantQuery: `
 			SELECT
 				*
@@ -671,7 +667,6 @@ func TestEval(t *testing.T) {
 				EmpNo:    1000,
 				MaxEmpNo: 10,
 			},
-			// wantQuery:  `SELECT * FROM person WHERE 1=1 AND employee_no < 222 AND id = ?/*maxEmpNo*/`,
 			wantQuery: `
 			SELECT
 				*
