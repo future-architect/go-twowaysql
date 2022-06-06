@@ -176,7 +176,7 @@ func encode(dest map[string]interface{}, src interface{}) error {
 		}
 	}
 
-	return runtimescan.Encode(src, []string{"twowaysql"}, &encoder{
+	return runtimescan.Encode(src, []string{"twowaysql", "db"}, &encoder{
 		dest: dest,
 	})
 }
