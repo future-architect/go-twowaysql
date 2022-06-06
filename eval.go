@@ -144,8 +144,8 @@ type encoder struct {
 	dest map[string]interface{}
 }
 
-func (m encoder) ParseTag(name, tagStr, pathStr string, elemType reflect.Type) (tag interface{}, err error) {
-	return runtimescan.BasicParseTag(name, tagStr, pathStr, elemType)
+func (m encoder) ParseTag(name, tagKey, tagStr, pathStr string, elemType reflect.Type) (tag interface{}, err error) {
+	return runtimescan.BasicParseTag(name, tagKey, tagStr, pathStr, elemType)
 }
 
 func (m *encoder) VisitField(tag, value interface{}) (err error) {
@@ -176,7 +176,7 @@ func encode(dest map[string]interface{}, src interface{}) error {
 		}
 	}
 
-	return runtimescan.Encode(src, "twowaysql", &encoder{
+	return runtimescan.Encode(src, []string{"twowaysql"}, &encoder{
 		dest: dest,
 	})
 }
