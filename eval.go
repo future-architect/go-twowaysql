@@ -2,6 +2,7 @@ package twowaysql
 
 import (
 	"bytes"
+	"database/sql"
 	"fmt"
 	"reflect"
 	"strings"
@@ -176,9 +177,17 @@ func encode(dest map[string]interface{}, src interface{}) error {
 		}
 	}
 
-	return runtimescan.Encode(src, []string{"twowaysql", "db"}, &encoder{
+	tags := []string{"twowaysql", "db"}
+	if err := runtimescan.Encode(src, tags, &encoder{
 		dest: dest,
-	})
+	}); err != nil {
+		return err
+	}
+
+	// tagscanner does not support sql.NullXXX type.
+	encodeSQLNullTyp(src, dest, tags)
+
+	return nil
 }
 
 func convertToMapStringAny(mp reflect.Value, dest map[string]interface{}) bool {
@@ -189,4 +198,77 @@ func convertToMapStringAny(mp reflect.Value, dest map[string]interface{}) bool {
 		dest[k.String()] = mp.MapIndex(k).Interface()
 	}
 	return true
+}
+
+func encodeSQLNullTyp(src interface{}, dest map[string]interface{}, tags []string) {
+	const targetPkg = "database/sql"
+	srcFieldTyps := reflect.ValueOf(src).Type().Elem()
+	srcFieldValues := reflect.ValueOf(src).Elem()
+	for i := 0; i < srcFieldTyps.NumField(); i++ {
+		srcFieldTyp := srcFieldTyps.Field(i)
+		if srcFieldTyp.Type.PkgPath() != targetPkg {
+			continue
+		}
+		tagValue := getTagValue(srcFieldTyp.Tag, tags)
+		if tagValue == "" {
+			continue
+		}
+		switch v := srcFieldValues.Field(i).Interface().(type) {
+		case sql.NullBool:
+			if v.Valid {
+				dest[tagValue] = v.Bool
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullByte:
+			// not support
+			continue
+		case sql.NullFloat64:
+			if v.Valid {
+				dest[tagValue] = v.Float64
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullInt16:
+			if v.Valid {
+				dest[tagValue] = v.Int16
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullInt32:
+			if v.Valid {
+				dest[tagValue] = v.Int32
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullInt64:
+			if v.Valid {
+				dest[tagValue] = v.Int64
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullString:
+			if v.Valid {
+				dest[tagValue] = v.String
+			} else {
+				dest[tagValue] = nil
+			}
+		case sql.NullTime:
+			if v.Valid {
+				dest[tagValue] = v.Time
+			} else {
+				dest[tagValue] = nil
+			}
+		}
+	}
+}
+
+func getTagValue(structTag reflect.StructTag, targetTags []string) string {
+	for _, t := range targetTags {
+		tag := structTag.Get(t)
+		if tag != "" {
+			return tag
+		}
+	}
+	return ""
 }

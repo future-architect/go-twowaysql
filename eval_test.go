@@ -1,7 +1,9 @@
 package twowaysql
 
 import (
+	"database/sql"
 	"testing"
+	"time"
 
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
@@ -22,6 +24,8 @@ type Info struct {
 	Nil        interface{}     `twowaysql:"nil"`
 	Zero       int             `twowaysql:"zero"`
 	Table      [][]interface{} `twowaysql:"table"`
+	NullString sql.NullString  `twowaysql:"null_string"`
+	NullInt    sql.NullInt64   `twowaysql:"null_int"`
 }
 
 func TestEval(t *testing.T) {
@@ -1111,6 +1115,118 @@ func TestEvalWithMap(t *testing.T) {
 					t.Errorf("Doesn't Match\nexpected: \n%v\n but got: \n%v\n", tt.wantParams, params)
 				}
 			}
+		})
+	}
+}
+
+func TestEval_SQLNullTyp(t *testing.T) {
+	type SQLTypInfo struct {
+		NullBool    sql.NullBool    `db:"null_bool"`
+		NullFloat64 sql.NullFloat64 `db:"null_float_64"`
+		NullInt16   sql.NullInt16   `db:"null_int_16"`
+		NullInt32   sql.NullInt32   `db:"null_int_32"`
+		NullInt64   sql.NullInt64   `db:"null_int_64"`
+		NullString  sql.NullString  `db:"null_string"`
+		NullTime    sql.NullTime    `db:"null_time"`
+	}
+
+	tests := []struct {
+		name        string
+		input       string
+		inputParams SQLTypInfo
+		wantQuery   string
+		wantParams  []interface{}
+	}{
+		{
+			name:  "bind sql.NullBool",
+			input: `SELECT * FROM person WHERE value = /*null_bool*/false`,
+			inputParams: SQLTypInfo{
+				NullBool: sql.NullBool{Bool: true, Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_bool*/`,
+			wantParams: []interface{}{true},
+		},
+		{
+			name:  "bind sql.Float64",
+			input: `SELECT * FROM person WHERE value = /*null_float_64*/1.0`,
+			inputParams: SQLTypInfo{
+				NullFloat64: sql.NullFloat64{Float64: 10.01, Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_float_64*/`,
+			wantParams: []interface{}{10.01},
+		},
+		{
+			name:  "bind sql.NullInt16",
+			input: `SELECT * FROM person WHERE value = /*null_int_16*/1`,
+			inputParams: SQLTypInfo{
+				NullInt16: sql.NullInt16{Int16: 10, Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_int_16*/`,
+			wantParams: []interface{}{int16(10)},
+		},
+		{
+			name:  "bind sql.NullInt32",
+			input: `SELECT * FROM person WHERE value = /*null_int_32*/1`,
+			inputParams: SQLTypInfo{
+				NullInt32: sql.NullInt32{Int32: 100, Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_int_32*/`,
+			wantParams: []interface{}{int32(100)},
+		},
+		{
+			name:  "bind sql.NullInt64",
+			input: `SELECT * FROM person WHERE value = /*null_int_64*/1`,
+			inputParams: SQLTypInfo{
+				NullInt64: sql.NullInt64{Int64: 1000, Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_int_64*/`,
+			wantParams: []interface{}{int64(1000)},
+		},
+		{
+			name:  "bind sql.NullString",
+			input: `SELECT * FROM person WHERE value = /*null_string*/'hoge'`,
+			inputParams: SQLTypInfo{
+				NullString: sql.NullString{String: "value", Valid: true},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_string*/`,
+			wantParams: []interface{}{"value"},
+		},
+		{
+			name:  "bind sql.NullTime",
+			input: `SELECT * FROM person WHERE value = /*null_time*/'2022-01-01 10:00:00'`,
+			inputParams: SQLTypInfo{
+				NullTime: sql.NullTime{
+					Time:  time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC),
+					Valid: true,
+				},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_time*/`,
+			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+		},
+		{
+			name:        "bind initial",
+			input:       `SELECT * FROM person WHERE value = /*null_string*/'hoge'`,
+			inputParams: SQLTypInfo{},
+			wantQuery:   `SELECT * FROM person WHERE value = ?/*null_string*/`,
+			wantParams:  []interface{}{nil},
+		},
+		{
+			name:  "bind invalid",
+			input: `SELECT * FROM person WHERE value = /*null_string*/'hoge'`,
+			inputParams: SQLTypInfo{
+				NullString: sql.NullString{String: "value", Valid: false},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_string*/`,
+			wantParams: []interface{}{nil},
+		},
+	}
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			query, params, err := Eval(tt.input, &tt.inputParams)
+			assert.NilError(t, err)
+			assert.Check(t, cmp.DeepEqual(tt.wantParams, params))
+			assert.Check(t, cmp.DeepEqual(tt.wantQuery, query))
 		})
 	}
 }
