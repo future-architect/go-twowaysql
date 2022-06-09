@@ -3,7 +3,9 @@ CREATE TABLE persons (
 		dept_no INT,
 		first_name VARCHAR(100),
 		last_name VARCHAR(100),
-		email VARCHAR(100)
+		email VARCHAR(100),
+		null_string VARCHAR(100),
+		null_int INT
 		);
 
 INSERT INTO persons(employee_no, dept_no, first_name, last_name, email) VALUES

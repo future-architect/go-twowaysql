@@ -2,6 +2,7 @@ package twowaysql
 
 import (
 	"context"
+	"database/sql"
 	"errors"
 	"fmt"
 	"os"
@@ -12,9 +13,11 @@ import (
 )
 
 type Person struct {
-	FirstName string `db:"first_name"`
-	LastName  string `db:"last_name"`
-	Email     string `db:"email"`
+	FirstName  string         `db:"first_name"`
+	LastName   string         `db:"last_name"`
+	Email      string         `db:"email"`
+	NullString sql.NullString `db:"null_string"`
+	NullInt    sql.NullInt64  `db:"null_int"`
 }
 
 func TestSelect(t *testing.T) {
@@ -116,28 +119,32 @@ func TestInsertAndDelete(t *testing.T) {
 	ctx := context.Background()
 
 	var params = Info{
-		EmpNo:     100,
-		FirstName: "Jeff",
-		LastName:  "Dean",
-		DeptNo:    1011,
-		Email:     "jeffdean@example.com",
+		EmpNo:      100,
+		FirstName:  "Jeff",
+		LastName:   "Dean",
+		DeptNo:     1011,
+		Email:      "jeffdean@example.com",
+		NullString: sql.NullString{String: "value", Valid: true},
+		NullInt:    sql.NullInt64{Int64: 11, Valid: false}, // NULL 登録
 	}
-	_, err := tw.Exec(ctx, `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email) VALUES(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com")`, &params)
+	_, err := tw.Exec(ctx, `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email, null_string, null_int) VALUES(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com", /*null_string*/'null', /*null_int*/1)`, &params)
 	if err != nil {
 		t.Fatalf("exec: failed: %v", err)
 	}
 
 	var people []Person
-	err = tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE dept_no = /*deptNo*/0`, &params)
+	err = tw.Select(ctx, &people, `SELECT first_name, last_name, email, null_string, null_int FROM persons WHERE dept_no = /*deptNo*/0`, &params)
 	if err != nil {
 		t.Fatalf("select: failed: %v", err)
 	}
 
 	var expected = []Person{
 		{
-			FirstName: "Jeff",
-			LastName:  "Dean",
-			Email:     "jeffdean@example.com",
+			FirstName:  "Jeff",
+			LastName:   "Dean",
+			Email:      "jeffdean@example.com",
+			NullString: sql.NullString{String: "value", Valid: true},
+			NullInt:    sql.NullInt64{Int64: 0, Valid: false}, // NULL 確認
 		},
 	}
 	if !match(people, expected) {
