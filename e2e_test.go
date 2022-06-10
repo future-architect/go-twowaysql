@@ -7,9 +7,12 @@ import (
 	"fmt"
 	"os"
 	"testing"
+	"time"
 
 	"github.com/jmoiron/sqlx"
 	_ "github.com/lib/pq"
+	"gotest.tools/v3/assert"
+	"gotest.tools/v3/assert/cmp"
 )
 
 type Person struct {
@@ -18,6 +21,8 @@ type Person struct {
 	Email      string         `db:"email"`
 	NullString sql.NullString `db:"null_string"`
 	NullInt    sql.NullInt64  `db:"null_int"`
+	CreatedAt  time.Time      `db:"created_at"`
+	UpdatedAt  sql.NullTime   `db:"updated_at"`
 }
 
 func TestSelect(t *testing.T) {
@@ -66,9 +71,7 @@ func TestSelect(t *testing.T) {
 		t.Errorf("select: failed: %v", err)
 	}
 
-	if !match(people, expected) {
-		t.Errorf("\nexpected:\n%v\nbut got\n%v\n", expected, people)
-	}
+	assert.Check(t, cmp.DeepEqual(people, expected))
 
 }
 
@@ -105,9 +108,7 @@ func TestUpdate(t *testing.T) {
 			Email:     "malvinafitzsimons@example.com",
 		},
 	}
-	if !match(people, expected) {
-		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
-	}
+	assert.Check(t, cmp.DeepEqual(people, expected))
 }
 
 func TestInsertAndDelete(t *testing.T) {
@@ -126,14 +127,21 @@ func TestInsertAndDelete(t *testing.T) {
 		Email:      "jeffdean@example.com",
 		NullString: sql.NullString{String: "value", Valid: true},
 		NullInt:    sql.NullInt64{Int64: 11, Valid: false}, // NULL 登録
+		CreatedAt:  time.Date(2022, 6, 10, 17, 0, 0, 0, time.UTC),
+		UpdatedAt:  sql.NullTime{Time: time.Date(2022, 6, 10, 18, 0, 0, 0, time.UTC), Valid: true},
 	}
-	_, err := tw.Exec(ctx, `INSERT INTO persons (employee_no, dept_no, first_name, last_name, email, null_string, null_int) VALUES(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com", /*null_string*/'null', /*null_int*/1)`, &params)
+	_, err := tw.Exec(ctx, `
+		INSERT INTO persons
+			(employee_no, dept_no, first_name, last_name, email, null_string, null_int, created_at, updated_at)
+		VALUES
+			(/*EmpNo*/1, /*deptNo*/1, /*firstName*/"Tim", /*lastName*/"Cook", /*email*/"timcook@example.com", /*null_string*/'null', /*null_int*/1, /*created_at*/'2022-06-01 10:00:00', /*updated_at*/'2022-06-02 10:00:00')`,
+		&params)
 	if err != nil {
 		t.Fatalf("exec: failed: %v", err)
 	}
 
 	var people []Person
-	err = tw.Select(ctx, &people, `SELECT first_name, last_name, email, null_string, null_int FROM persons WHERE dept_no = /*deptNo*/0`, &params)
+	err = tw.Select(ctx, &people, `SELECT first_name, last_name, email, null_string, null_int, created_at, updated_at FROM persons WHERE dept_no = /*deptNo*/0`, &params)
 	if err != nil {
 		t.Fatalf("select: failed: %v", err)
 	}
@@ -145,11 +153,11 @@ func TestInsertAndDelete(t *testing.T) {
 			Email:      "jeffdean@example.com",
 			NullString: sql.NullString{String: "value", Valid: true},
 			NullInt:    sql.NullInt64{Int64: 0, Valid: false}, // NULL 確認
+			CreatedAt:  time.Date(2022, 6, 10, 17, 0, 0, 0, time.UTC),
+			UpdatedAt:  sql.NullTime{Time: time.Date(2022, 6, 10, 18, 0, 0, 0, time.UTC), Valid: true},
 		},
 	}
-	if !match(people, expected) {
-		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
-	}
+	assert.Check(t, cmp.DeepEqual(people, expected))
 
 	_, err = tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = /*EmpNo*/2`, &params)
 	if err != nil {
@@ -163,9 +171,7 @@ func TestInsertAndDelete(t *testing.T) {
 	}
 
 	expected = []Person{}
-	if !match(people, expected) {
-		t.Errorf("expected:\n%v\nbut got\n%v\n", expected, people)
-	}
+	assert.Check(t, cmp.DeepEqual(people, expected))
 }
 
 func TestTxCommit(t *testing.T) {
@@ -179,8 +185,8 @@ func TestTxCommit(t *testing.T) {
 	// insert test data
 	const insertSQL = `
 	INSERT INTO persons
-		(employee_no, dept_no, first_name, last_name, email) VALUES
-		(11, 111, 'Clegg', 'George', 'clegggeorge@example.com')
+		(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+		(11, 111, 'Clegg', 'George', 'clegggeorge@example.com', CURRENT_TIMESTAMP)
 		;
 	`
 	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
@@ -250,8 +256,8 @@ func TestTxRollback(t *testing.T) {
 	// insert test data
 	const insertSQL = `
 	INSERT INTO persons
-		(employee_no, dept_no, first_name, last_name, email) VALUES
-		(12, 121, 'Chmmg', 'Dudley', 'chmmgdudley@example.com')
+		(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+		(12, 121, 'Chmmg', 'Dudley', 'chmmgdudley@example.com', CURRENT_TIMESTAMP)
 		;
 	`
 	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
@@ -321,9 +327,9 @@ func TestTxBlock(t *testing.T) {
 	// insert test data
 	const insertSQL = `
 	INSERT INTO persons
-		(employee_no, dept_no, first_name, last_name, email) VALUES
-		(13, 131, 'Darling', 'Wat', 'darlingwat@example.com'),
-		(14, 141, 'Hallows', 'Jessie', 'hallowsjessie@example.com')
+		(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+		(13, 131, 'Darling', 'Wat', 'darlingwat@example.com', CURRENT_TIMESTAMP),
+		(14, 141, 'Hallows', 'Jessie', 'hallowsjessie@example.com', CURRENT_TIMESTAMP)
 		;`
 	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
 		t.Fatal(err)
