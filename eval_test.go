@@ -26,6 +26,8 @@ type Info struct {
 	Table      [][]interface{} `twowaysql:"table"`
 	NullString sql.NullString  `twowaysql:"null_string"`
 	NullInt    sql.NullInt64   `twowaysql:"null_int"`
+	CreatedAt  time.Time       `twowaysql:"created_at"`
+	UpdatedAt  sql.NullTime    `twowaysql:"updated_at"`
 }
 
 func TestEval(t *testing.T) {
@@ -1119,7 +1121,7 @@ func TestEvalWithMap(t *testing.T) {
 	}
 }
 
-func TestEval_SQLNullTyp(t *testing.T) {
+func TestEval_NestStructTyp(t *testing.T) {
 	type SQLTypInfo struct {
 		NullBool    sql.NullBool    `db:"null_bool"`
 		NullFloat64 sql.NullFloat64 `db:"null_float_64"`
@@ -1128,6 +1130,7 @@ func TestEval_SQLNullTyp(t *testing.T) {
 		NullInt64   sql.NullInt64   `db:"null_int_64"`
 		NullString  sql.NullString  `db:"null_string"`
 		NullTime    sql.NullTime    `db:"null_time"`
+		Time        time.Time       `db:"time"`
 	}
 
 	tests := []struct {
@@ -1201,6 +1204,15 @@ func TestEval_SQLNullTyp(t *testing.T) {
 				},
 			},
 			wantQuery:  `SELECT * FROM person WHERE value = ?/*null_time*/`,
+			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+		},
+		{
+			name:  "bind time.Time",
+			input: `SELECT * FROM person WHERE value = /*time*/'2022-01-01 10:00:00'`,
+			inputParams: SQLTypInfo{
+				Time: time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC),
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*time*/`,
 			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
 		},
 		{
