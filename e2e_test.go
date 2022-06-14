@@ -342,7 +342,7 @@ func TestTxBlock(t *testing.T) {
 		FirstName string `twowaysql:"firstName"`
 	}
 	// commit case
-	err := tw.Transaction(ctx, func(tx TwowaysqlTx) error {
+	err := tw.Transaction(ctx, func(tx *TwowaysqlTx) error {
 		// update
 		const sql = `
 		UPDATE
@@ -369,7 +369,7 @@ func TestTxBlock(t *testing.T) {
 	}
 
 	// rollcack case
-	err = tw.Transaction(ctx, func(tx TwowaysqlTx) error {
+	err = tw.Transaction(ctx, func(tx *TwowaysqlTx) error {
 		// update
 		const sql = `
 		UPDATE
