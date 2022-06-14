@@ -72,15 +72,20 @@ func (t *Twowaysql) Close() error {
 	return nil
 }
 
+// DB returns `*sqlx.DB`
+func (t *Twowaysql) DB() *sqlx.DB {
+	return t.db
+}
+
 // Transaction starts a transaction as a block.
 // arguments function is return error will rollback, otherwise to commit.
-func (t *Twowaysql) Transaction(ctx context.Context, fn func(tx TwowaysqlTx) error) error {
+func (t *Twowaysql) Transaction(ctx context.Context, fn func(tx *TwowaysqlTx) error) error {
 	tx, err := t.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err := fn(*tx); err != nil {
+	if err := fn(tx); err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
 			return fmt.Errorf("failed rollback %v: %w", rerr, err)
 		}
@@ -149,4 +154,9 @@ func (t *TwowaysqlTx) Exec(ctx context.Context, query string, params interface{}
 	q := t.tx.Rebind(eval)
 
 	return t.tx.ExecContext(ctx, q, bindParams...)
+}
+
+// Tx returns `*sqlx.Tx`
+func (t *TwowaysqlTx) Tx() *sqlx.Tx {
+	return t.tx
 }
