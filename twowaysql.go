@@ -79,13 +79,13 @@ func (t *Twowaysql) DB() *sqlx.DB {
 
 // Transaction starts a transaction as a block.
 // arguments function is return error will rollback, otherwise to commit.
-func (t *Twowaysql) Transaction(ctx context.Context, fn func(tx TwowaysqlTx) error) error {
+func (t *Twowaysql) Transaction(ctx context.Context, fn func(tx *TwowaysqlTx) error) error {
 	tx, err := t.Begin(ctx)
 	if err != nil {
 		return err
 	}
 
-	if err := fn(*tx); err != nil {
+	if err := fn(tx); err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
 			return fmt.Errorf("failed rollback %v: %w", rerr, err)
 		}
