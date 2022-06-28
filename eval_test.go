@@ -1126,11 +1126,6 @@ func TestEval_NestStructTyp(t *testing.T) {
 		EmbedNullString sql.NullString `db:"embed_null_string"`
 		EmbedTime       time.Time      `db:"embed_time"`
 		EmbedPtrTime    *time.Time     `db:"embed_ptr_time"`
-
-		Skip string
-		Nest struct {
-			ID string
-		}
 	}
 
 	type SQLTypInfo struct {
@@ -1142,6 +1137,7 @@ func TestEval_NestStructTyp(t *testing.T) {
 		NullString  sql.NullString  `db:"null_string"`
 		NullTime    sql.NullTime    `db:"null_time"`
 		Time        time.Time       `db:"time"`
+		PtrTime     *time.Time      `db:"ptr_time"`
 
 		Embed Embed
 	}
@@ -1226,6 +1222,18 @@ func TestEval_NestStructTyp(t *testing.T) {
 				Time: time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC),
 			},
 			wantQuery:  `SELECT * FROM person WHERE value = ?/*time*/`,
+			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+		},
+		{
+			name:  "bind ptr time.Time",
+			input: `SELECT * FROM person WHERE value = /*ptr_time*/'2022-01-01 10:00:00'`,
+			inputParams: SQLTypInfo{
+				PtrTime: func() *time.Time {
+					d := time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)
+					return &d
+				}(),
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*ptr_time*/`,
 			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
 		},
 		{
