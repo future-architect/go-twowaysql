@@ -1122,6 +1122,17 @@ func TestEvalWithMap(t *testing.T) {
 }
 
 func TestEval_NestStructTyp(t *testing.T) {
+	type Embed struct {
+		EmbedNullString sql.NullString `db:"embed_null_string"`
+		EmbedTime       time.Time      `db:"embed_time"`
+		EmbedPtrTime    *time.Time     `db:"embed_ptr_time"`
+
+		Skip string
+		Nest struct {
+			ID string
+		}
+	}
+
 	type SQLTypInfo struct {
 		NullBool    sql.NullBool    `db:"null_bool"`
 		NullFloat64 sql.NullFloat64 `db:"null_float_64"`
@@ -1131,6 +1142,8 @@ func TestEval_NestStructTyp(t *testing.T) {
 		NullString  sql.NullString  `db:"null_string"`
 		NullTime    sql.NullTime    `db:"null_time"`
 		Time        time.Time       `db:"time"`
+
+		Embed Embed
 	}
 
 	tests := []struct {
@@ -1221,6 +1234,36 @@ func TestEval_NestStructTyp(t *testing.T) {
 			inputParams: SQLTypInfo{},
 			wantQuery:   `SELECT * FROM person WHERE value = ?/*null_string*/`,
 			wantParams:  []interface{}{nil},
+		},
+		{
+			name:  "bind embed time.Time",
+			input: `SELECT * FROM person WHERE value = /*embed_time*/'2022-01-01 10:00:00'`,
+			inputParams: SQLTypInfo{
+				Embed: Embed{EmbedTime: time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*embed_time*/`,
+			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+		},
+		{
+			name:  "bind embed ptr time.Time",
+			input: `SELECT * FROM person WHERE value = /*embed_ptr_time*/'2022-01-01 10:00:00'`,
+			inputParams: SQLTypInfo{
+				Embed: Embed{EmbedPtrTime: func() *time.Time {
+					d := time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)
+					return &d
+				}()},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*embed_ptr_time*/`,
+			wantParams: []interface{}{time.Date(2022, 7, 1, 12, 30, 30, 0, time.UTC)},
+		},
+		{
+			name:  "bind embed sql.NullString",
+			input: `SELECT * FROM person WHERE value = /*embed_null_string*/'embed_null_string'`,
+			inputParams: SQLTypInfo{
+				Embed: Embed{EmbedNullString: sql.NullString{String: "value", Valid: true}},
+			},
+			wantQuery:  `SELECT * FROM person WHERE value = ?/*embed_null_string*/`,
+			wantParams: []interface{}{"value"},
 		},
 		{
 			name:  "bind invalid",
