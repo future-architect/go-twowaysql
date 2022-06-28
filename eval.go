@@ -186,7 +186,7 @@ func encode(dest map[string]interface{}, src interface{}) error {
 	}
 
 	// tagscanner does not support nest struct type.
-	encodeNestStructTyp(src, dest, tags)
+	encodeStructField(src, dest, tags)
 
 	return nil
 }
@@ -201,21 +201,35 @@ func convertToMapStringAny(mp reflect.Value, dest map[string]interface{}) bool {
 	return true
 }
 
-func encodeNestStructTyp(src interface{}, dest map[string]interface{}, tags []string) {
-	srcFieldTyps := reflect.ValueOf(src).Type().Elem()
-	srcFieldValues := reflect.ValueOf(src).Elem()
+func encodeStructField(src interface{}, dest map[string]interface{}, tags []string) {
+	srcFieldValues := reflect.ValueOf(src)
+	srcFieldTyps := srcFieldValues.Type()
+	if srcFieldTyps.Kind() == reflect.Pointer {
+		srcFieldTyps = srcFieldTyps.Elem()
+		srcFieldValues = srcFieldValues.Elem()
+	}
 	for i := 0; i < srcFieldTyps.NumField(); i++ {
 		srcFieldTyp := srcFieldTyps.Field(i)
+		srcFieldValue := srcFieldValues.Field(i)
+
 		tagValue := getTagValue(srcFieldTyp.Tag, tags)
-		if tagValue == "" {
+
+		if srcFieldTyp.Type.Kind() != reflect.Struct {
 			continue
 		}
-		srcFieldValue := srcFieldValues.Field(i)
 		switch srcFieldTyp.Type.PkgPath() {
 		case "database/sql":
+			if tagValue == "" {
+				continue
+			}
 			encodeSQLNullTyp(srcFieldValue, dest, tagValue)
 		case "time":
+			if tagValue == "" {
+				continue
+			}
 			encodeTimeTyp(srcFieldValue, dest, tagValue)
+		default:
+			encodeStructField(srcFieldValue.Interface(), dest, tags)
 		}
 	}
 }
