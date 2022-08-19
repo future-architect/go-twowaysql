@@ -25,13 +25,20 @@ func New(db *sqlx.DB) *Twowaysql {
 // params takes a tagged struct. The tags format must be `twowaysql:"tag_name"`.
 // dest takes a pointer to a slice of a struct. The struct tag format must be `db:"tag_name"`.
 func (t *Twowaysql) Select(ctx context.Context, dest interface{}, query string, params interface{}) error {
-
 	eval, bindParams, err := Eval(query, params)
 	if err != nil {
 		return err
 	}
 
 	q := t.db.Rebind(eval)
+
+	if destMap, ok := dest.(*[]map[string]interface{}); ok {
+		rows, err := t.db.QueryxContext(ctx, q, bindParams...)
+		if err != nil {
+			return err
+		}
+		return convertResultToMap(destMap, rows)
+	}
 
 	return t.db.SelectContext(ctx, dest, q, bindParams...)
 
@@ -137,6 +144,14 @@ func (t *TwowaysqlTx) Select(ctx context.Context, dest interface{}, query string
 
 	q := t.tx.Rebind(eval)
 
+	if destMap, ok := dest.(*[]map[string]interface{}); ok {
+		rows, err := t.tx.QueryxContext(ctx, q, bindParams...)
+		if err != nil {
+			return err
+		}
+		return convertResultToMap(destMap, rows)
+	}
+
 	return t.tx.SelectContext(ctx, dest, q, bindParams...)
 
 }
@@ -154,6 +169,18 @@ func (t *TwowaysqlTx) Exec(ctx context.Context, query string, params interface{}
 	q := t.tx.Rebind(eval)
 
 	return t.tx.ExecContext(ctx, q, bindParams...)
+}
+
+func convertResultToMap(dest *[]map[string]interface{}, rows *sqlx.Rows) error {
+	defer rows.Close()
+	for rows.Next() {
+		row := map[string]interface{}{}
+		if err := rows.MapScan(row); err != nil {
+			return err
+		}
+		*dest = append(*dest, row)
+	}
+	return nil
 }
 
 // Tx returns `*sqlx.Tx`

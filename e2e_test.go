@@ -75,6 +75,56 @@ func TestSelect(t *testing.T) {
 
 }
 
+func TestSelectMap(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	db := open(t)
+	defer db.Close()
+	tw := New(db)
+	ctx := context.Background()
+
+	// SELECT
+	var people []map[string]interface{}
+	var params = Info{
+		MaxEmpNo: 3,
+		DeptNo:   12,
+	}
+
+	expected := []map[string]interface{}{
+		{
+			"first_name": "Evan",
+			"last_name":  "MacMans",
+			"email":      "evanmacmans@example.com",
+		},
+		{
+			"first_name": "Malvina",
+			"last_name":  "FitzSimons",
+			"email":      "malvinafitzsimons@example.com",
+		},
+	}
+
+	sql := `-- comment
+		SELECT
+			first_name
+		,	last_name
+		,	email
+		FROM
+			persons
+		WHERE
+			employee_no	<	/*maxEmpNo*/1000 -- comment
+			/* IF deptNo */
+			AND	dept_no		<	/*deptNo*/1
+			/* END */
+		-- comment`
+	err := tw.Select(ctx, &people, sql, &params)
+	if err != nil {
+		t.Errorf("select: failed: %v", err)
+	}
+
+	assert.Check(t, cmp.DeepEqual(people, expected))
+
+}
+
 func TestUpdate(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
 	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
