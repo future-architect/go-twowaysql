@@ -5,9 +5,8 @@ services:
     environment: 
       - POSTGRES_HOST=postgres
     depends_on: 
-      - "db"
-    command: ["/usr/bin/wait-for-it", "db:5432", "--", "go", "test", "-v", "./..."]
-  
+      db:
+        condition: service_healthy
   db:
     image: postgres
     container_name: postgres 
@@ -17,13 +16,18 @@ services:
       - POSTGRES_PASSWORD=postgres
       - POSTGRES_INITDB_ARGS=--encoding=UTF-8
       #- POSTGRES_DB=postgres
-    
     ports:
       - "5432:5432"
     user: root 
     volumes:
       - ./postgres/init:/docker-entrypoint-initdb.d
       - pg-data:/var/lib/pgdata
+    healthcheck:
+      test: pg_isready -U postgres -d postgres
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
 volumes:
   pg-data:
     driver: local
