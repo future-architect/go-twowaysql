@@ -24,7 +24,7 @@ import (
 
 	"github.com/future-architect/go-twowaysql"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
+	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
 type Person struct {
@@ -45,7 +45,7 @@ type Params struct {
 func main() {
 	ctx := context.Background()
 
-	db, err := sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+	db, err := sqlx.Open("pgx", "user=postgres password=postgres dbname=postgres sslmode=disable")
 
 	defer db.Close()
 	if err != nil {
@@ -74,7 +74,20 @@ func main() {
 
 ```
 
-
 ## License
 
 Apache License Version 2.0
+
+## Contribution
+
+Launch database for testing:
+
+```
+$ docker compose up --build
+```
+
+Run acceptance test:
+
+```
+$ docker compose -f docker-compose-test.yml up --build
+```

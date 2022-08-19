@@ -9,8 +9,8 @@ import (
 	"testing"
 	"time"
 
+	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
-	_ "github.com/lib/pq"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 )
@@ -427,9 +427,9 @@ func open(t *testing.T) *sqlx.DB {
 	var err error
 
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sqlx.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+		db, err = sqlx.Open("pgx", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
 	} else {
-		db, err = sqlx.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+		db, err = sqlx.Open("pgx", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
 	if err != nil {

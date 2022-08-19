@@ -14,9 +14,9 @@ func TestDBConnection(t *testing.T) {
 	var err error
 
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
-		db, err = sql.Open("postgres", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
+		db, err = sql.Open("pgx", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
 	} else {
-		db, err = sql.Open("postgres", "user=postgres password=postgres dbname=postgres sslmode=disable")
+		db, err = sql.Open("pgx", "user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
 	if err != nil {
