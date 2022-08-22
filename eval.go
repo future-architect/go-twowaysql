@@ -9,7 +9,7 @@ import (
 	"time"
 	"unicode"
 
-	"gitlab.com/osaki-lab/tagscanner/runtimescan"
+	"github.com/future-architect/tagscanner/runtimescan"
 )
 
 // Eval returns converted query and bind value.
