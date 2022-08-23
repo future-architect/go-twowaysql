@@ -1,0 +1,1 @@
+SELECT email, first_name, last_name FROM persons WHERE first_name=/*first_name*/'bob';

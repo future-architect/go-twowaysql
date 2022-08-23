@@ -1,0 +1,2 @@
+INSERT INTO persons(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+			(/*id*/1, /*dept*/10, /*fn*/'Evan', /*ln*/'MacMans', /*mail*/'evanmacmans@example.com', CURRENT_TIMESTAMP);
