@@ -2,7 +2,6 @@ package cli
 
 import (
 	"fmt"
-	"io/ioutil"
 	"os"
 
 	"github.com/alecthomas/chroma/quick"
@@ -25,7 +24,7 @@ func eval(srcPath string, params []string) error {
 		return err
 	}
 
-	src, err := ioutil.ReadFile(srcPath)
+	src, err := os.ReadFile(srcPath)
 	if err != nil {
 		return err
 	}

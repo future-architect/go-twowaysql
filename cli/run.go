@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
-	"io/ioutil"
 	"os"
 	"regexp"
 	"strings"
@@ -52,7 +51,7 @@ func run(driver, dbSrc, srcPath string, params []string, explain, rollback bool,
 		return err
 	}
 
-	src, err := ioutil.ReadFile(srcPath)
+	src, err := os.ReadFile(srcPath)
 	if err != nil {
 		return err
 	}
