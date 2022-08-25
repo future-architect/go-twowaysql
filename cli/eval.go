@@ -24,12 +24,12 @@ func eval(srcPath string, params []string) error {
 		return err
 	}
 
-	src, err := os.ReadFile(srcPath)
+	srcSql, err := readSql(srcPath)
 	if err != nil {
 		return err
 	}
 
-	convertedSrc, sqlParams, err := twowaysql.Eval(string(src), finalParams)
+	convertedSrc, sqlParams, err := twowaysql.Eval(srcSql, finalParams)
 	if err != nil {
 		return err
 	}

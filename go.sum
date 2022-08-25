@@ -27,8 +27,8 @@ github.com/dustin/go-humanize v1.0.0/go.mod h1:HtrtbFcZ19U5GC7JDqmcUSB87Iq5E25Kn
 github.com/fatih/color v1.10.0/go.mod h1:ELkj/draVOlAH/xkhN6mQ50Qd0MPOk5AAr3maGEBuJM=
 github.com/fatih/color v1.13.0 h1:8LOYc1KYPPmyKMuN8QV2DNRWNbLo6LZ0iLs8+mlH53w=
 github.com/fatih/color v1.13.0/go.mod h1:kLAiJbzzSOZDVNGyDpeOxJ47H46qBXwg5ILebYFFOfk=
-github.com/future-architect/tagscanner v1.0.0 h1:k7nRQbdhavtVZG9ZUi2N4la/3dkekLMLYE+wHc9Ju3o=
-github.com/future-architect/tagscanner v1.0.0/go.mod h1:8oNrgjBYshWEPUCUNbOzxuaoPcB6ifKzUi4jIC0BcgA=
+github.com/future-architect/tagscanner v1.0.1 h1:a3bEyiWbPeI5Py1aZkrGpo9CRO7zMrvxNgKrzRbph4k=
+github.com/future-architect/tagscanner v1.0.1/go.mod h1:8oNrgjBYshWEPUCUNbOzxuaoPcB6ifKzUi4jIC0BcgA=
 github.com/go-kit/log v0.1.0/go.mod h1:zbhenjAZHb184qTLMA9ZjW7ThYL0H2mk7Q6pNt4vbaY=
 github.com/go-logfmt/logfmt v0.5.0/go.mod h1:wCYkCAKZfumFQihp8CzCvQ3paCTfi41vtzG1KdI/P7A=
 github.com/go-playground/assert/v2 v2.0.1/go.mod h1:VDjEfimB/XKnb+ZQfWdccd7VUvScMdVu0Titje2rxJ4=
@@ -151,11 +151,17 @@ github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFR
 github.com/rs/xid v1.2.1/go.mod h1:+uKXf+4Djp6Md1KODXJxgGQPKngRmWyn10oCKFzNHOQ=
 github.com/rs/zerolog v1.13.0/go.mod h1:YbFCdg8HfsridGWAh22vktObvhZbQsZXe4/zB0OKkWU=
 github.com/rs/zerolog v1.15.0/go.mod h1:xYTKnLHcpfU2225ny5qZjxnj9NvkumZYjJHlAThCjNc=
+github.com/russross/blackfriday/v2 v2.1.0 h1:JIOH55/0cWyOuilr9/qlrm0BSXldqnqwMsf35Ld67mk=
+github.com/russross/blackfriday/v2 v2.1.0/go.mod h1:+Rmxgy9KzJVeS9/2gXHxylqXiyQDYRxCVz55jmeOWTM=
 github.com/satori/go.uuid v1.2.0/go.mod h1:dA0hQrYB0VpLJoorglMZABFdXlWrHn1NEOzdhQKdks0=
 github.com/shibukawa/acquire-go v1.0.0 h1:wtWFn/SaUlpNKMdWhaxv91bohgAvSxWvZZwaY/1AVuk=
 github.com/shibukawa/acquire-go v1.0.0/go.mod h1:qNFR0+pDjqOx7ZpUVoF80jozjVpQKOi9JYaZyzp4Haw=
 github.com/shibukawa/formatdata-go v0.1.2 h1:EBBJky7wxVPRgjynWAbyesYk140a7K6ThCoWZafovqw=
 github.com/shibukawa/formatdata-go v0.1.2/go.mod h1:6sVcoV/1cgw/8fionECK52LI2wI9x9DtffJ+Duo8t1w=
+github.com/shibukawa/mdd-go v0.1.3 h1:tUASwKu772Ovj0GgjLMNfoL25Bt6ImY2/Xrkk0INaRM=
+github.com/shibukawa/mdd-go v0.1.3/go.mod h1:LNfNf6anWB+Wp3NeJxNbAtED6XCc3pNJFlqlKun+7G4=
+github.com/shibukawa/mdd-go v0.1.4 h1:Tiy0Np6bsaYFXlx5P2AP8EQYCKKT+oyCsOddZXFmR1M=
+github.com/shibukawa/mdd-go v0.1.4/go.mod h1:LNfNf6anWB+Wp3NeJxNbAtED6XCc3pNJFlqlKun+7G4=
 github.com/shibukawa/stringwidth v0.2.0 h1:7yI2g++cXmcfkAQdjski1WdNS4/JXOlogIZvVUaXlZw=
 github.com/shibukawa/stringwidth v0.2.0/go.mod h1:Wrfv+6/9RP6lIMAZIujniybvvHYAfqqW81nNqXOXZsg=
 github.com/shopspring/decimal v0.0.0-20180709203117-cd690d0c9e24/go.mod h1:M+9NzErvs504Cn4c5DxATwIqPbtswREoFCre64PpcG4=
@@ -273,6 +279,8 @@ gopkg.in/inconshreveable/log15.v2 v2.0.0-20180818164646-67afb5ed74ec/go.mod h1:a
 gopkg.in/sourcemap.v1 v1.0.5 h1:inv58fC9f9J3TK2Y2R1NPntXEn3/wjWHkonhIUODNTI=
 gopkg.in/sourcemap.v1 v1.0.5/go.mod h1:2RlvNNSMglmRrcvhfuzp4hQHwOtjxlbjX7UPY/GXb78=
 gopkg.in/yaml.v2 v2.2.2/go.mod h1:hI93XBmqTisBFMUTm0b8Fm+jr3Dg1NNxqwp+5A1VGuI=
+gopkg.in/yaml.v2 v2.4.0 h1:D8xgwECY7CYvx+Y2n4sBz93Jn9JRvxdiyyo8CTfuKaY=
+gopkg.in/yaml.v2 v2.4.0/go.mod h1:RDklbk79AGWmwhnvt/jBztapEOGDOx6ZbXqjP6csGnQ=
 gopkg.in/yaml.v3 v3.0.0-20200313102051-9f266ea9e77c/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=
 gopkg.in/yaml.v3 v3.0.1 h1:fxVm/GzAzEWqLHuvctI91KS9hhNmmWOoWu0XTYJS7CA=
 gopkg.in/yaml.v3 v3.0.1/go.mod h1:K4uyk7z7BCEPqu6E+C64Yfv1cQ7kz7rIZviUmN+EgEM=

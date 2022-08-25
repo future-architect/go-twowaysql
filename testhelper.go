@@ -1,13 +1,15 @@
-package cli
+package twowaysql
 
 import (
 	"regexp"
 	"strings"
+	"testing"
 )
 
 var stripSpacePattern = regexp.MustCompile("(^[ \t]*)")
 
-func trimIndent(src string) string {
+func TrimIndent(t *testing.T, src string) string {
+	t.Helper()
 	lines := strings.Split(src, "\n")
 	if lines[0] == "" {
 		lines = lines[1:]

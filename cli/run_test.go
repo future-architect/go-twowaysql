@@ -7,6 +7,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/future-architect/go-twowaysql"
 	"github.com/shibukawa/acquire-go"
 	"gotest.tools/v3/assert"
 
@@ -45,7 +46,7 @@ func Test_run(t *testing.T) {
 				params:       []string{"first_name=Evan"},
 				outputFormat: "json",
 			},
-			wantOut: trimIndent(`
+			wantOut: twowaysql.TrimIndent(t, `
 			[
 			  {
 			    "email": "evanmacmans@example.com",
@@ -61,7 +62,7 @@ func Test_run(t *testing.T) {
 				params:       []string{"first_name=Evan"},
 				outputFormat: "yaml",
 			},
-			wantOut: trimIndent(`
+			wantOut: twowaysql.TrimIndent(t, `
 				- email: evanmacmans@example.com
 				  first_name: Evan
 				  last_name: MacMans`),

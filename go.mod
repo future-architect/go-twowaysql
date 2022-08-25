@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/chroma v0.10.0
 	github.com/fatih/color v1.13.0
-	github.com/future-architect/tagscanner v1.0.0
+	github.com/future-architect/tagscanner v1.0.1
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-yaml v1.9.5
 	github.com/google/go-cmp v0.5.5
@@ -14,6 +14,7 @@ require (
 	github.com/jmoiron/sqlx v1.3.1
 	github.com/joho/godotenv v1.4.0
 	github.com/robertkrimen/otto v0.0.0-20200922221731-ef014fd054ac
+	github.com/russross/blackfriday/v2 v2.1.0 // indirect
 	gopkg.in/alecthomas/kingpin.v2 v2.2.6
 	gopkg.in/sourcemap.v1 v1.0.5 // indirect
 	gotest.tools/v3 v3.2.0
@@ -23,6 +24,7 @@ require (
 require (
 	github.com/shibukawa/acquire-go v1.0.0
 	github.com/shibukawa/formatdata-go v0.1.2
+	github.com/shibukawa/mdd-go v0.1.4
 	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8
 )
 
@@ -52,6 +54,7 @@ require (
 	golang.org/x/text v0.3.7 // indirect
 	golang.org/x/tools v0.1.0 // indirect
 	golang.org/x/xerrors v0.0.0-20200804184101-5ec99f83aff1 // indirect
+	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 	lukechampine.com/uint128 v1.1.1 // indirect
 	modernc.org/cc/v3 v3.36.0 // indirect
