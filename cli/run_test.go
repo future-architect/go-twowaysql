@@ -13,7 +13,7 @@ import (
 
 func Test_run(t *testing.T) {
 	driver := "pgx"
-	dbSrc := "postgres://postgres:postgres@localhost:5432/postgres?sslmode=disable"
+	dbSrc := "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
 	type args struct {
 		srcPath      string
 		params       []string
