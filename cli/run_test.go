@@ -2,6 +2,8 @@ package cli
 
 import (
 	"bytes"
+	"fmt"
+	"os"
 	"strings"
 	"testing"
 
@@ -11,9 +13,18 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
+func sourceStr(t *testing.T) string {
+	t.Helper()
+	if host, ok := os.LookupEnv("POSTGRES_HOST"); ok {
+		return fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host)
+	} else {
+		return "host=localhost user=postgres password=postgres dbname=postgres sslmode=disable"
+	}
+}
+
 func Test_run(t *testing.T) {
 	driver := "pgx"
-	dbSrc := "postgres://postgres:postgres@postgres:5432/postgres?sslmode=disable"
+	dbSrc := sourceStr(t)
 	type args struct {
 		srcPath      string
 		params       []string

@@ -16,13 +16,16 @@ func TestDBConnection(t *testing.T) {
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
 		db, err = sql.Open("pgx", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
 	} else {
-		db, err = sql.Open("pgx", "user=postgres password=postgres dbname=postgres sslmode=disable")
+		db, err = sql.Open("pgx", "host=localhost user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer db.Close()
+
+	t.Cleanup(func() {
+		db.Close()
+	})
 
 	ctx := context.Background()
 
@@ -30,7 +33,10 @@ func TestDBConnection(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	defer rows.Close()
+
+	t.Cleanup(func() {
+		rows.Close()
+	})
 	for rows.Next() {
 		var name string
 		if err := rows.Scan(&name); err != nil {

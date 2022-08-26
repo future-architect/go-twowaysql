@@ -27,9 +27,11 @@ type Person struct {
 
 func TestSelect(t *testing.T) {
 	//このテストはinit.sqlに依存しています。
-	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	//データベースは/testdata/postgres/init以下のsqlファイルを用いて初期化されている。
 	db := open(t)
-	defer db.Close()
+	t.Cleanup(func() {
+		db.Close()
+	})
 	tw := New(db)
 	ctx := context.Background()
 
@@ -70,9 +72,7 @@ func TestSelect(t *testing.T) {
 	if err != nil {
 		t.Errorf("select: failed: %v", err)
 	}
-
 	assert.Check(t, cmp.DeepEqual(people, expected))
-
 }
 
 func TestSelectMap(t *testing.T) {
@@ -473,13 +473,14 @@ func TestTxBlock(t *testing.T) {
 }
 
 func open(t *testing.T) *sqlx.DB {
+	t.Helper()
 	var db *sqlx.DB
 	var err error
 
 	if host := os.Getenv("POSTGRES_HOST"); host != "" {
 		db, err = sqlx.Open("pgx", fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host))
 	} else {
-		db, err = sqlx.Open("pgx", "user=postgres password=postgres dbname=postgres sslmode=disable")
+		db, err = sqlx.Open("pgx", "host=localhost user=postgres password=postgres dbname=postgres sslmode=disable")
 	}
 
 	if err != nil {
