@@ -7,7 +7,7 @@
 ## Installation
 
 ```
-go get github.com/future-architect/go-twowaysql 
+go get github.com/future-architect/go-twowaysql
 ```
 
 ## Usage
@@ -71,7 +71,77 @@ func main() {
 	//Person{EmpNo:2, DeptNo:11, FirstName:"Malvina", LastName:"FitzSimons", Email:"malvinafitzsimons@example.com"}
 
 }
+```
 
+## CLI Tool
+
+CLI tool `twowaysql` provides helper functions about two way sql
+
+```
+go install github.com/future-architect/go-twowaysql/...
+```
+
+### Database Connection
+
+To connect database, *driver* and *source* strings are required. Driver is like `pgx` and source is `postgres://user:pass@host/dbname?sslmode=disable`.
+
+You can pass them via options(`-d DRIVER`, `--driver=DRIVER`, `-c SOURCE`, `--source=SOURCE`) or by using `TWOWAYSQL_DRIVER`/`TWOWAYSQL_CONNECTION` environment variables.
+
+This tool also read `.env` and `.env.local` files.
+
+### Execute SQL
+
+```
+$ twowaysql run -p first_name=Malvina testdata/postgres/sql/select_person.sql
+┌───────────────────────────────┬────────────┬────────────┐
+│ email                         │ first_name │ last_name  │
+╞═══════════════════════════════╪════════════╪════════════╡
+│ malvinafitzsimons@example.com │ Malvina    │ FitzSimons │
+└───────────────────────────────┴────────────┴────────────┘
+
+Query takes 22.804166ms
+```
+
+* -p, --param=PARAM ...        Parameter in single value or JSON (name=bob, or {"name": "bob"})
+* -e, --explain                Run with EXPLAIN to show execution plan
+* -r, --rollback               Run within transaction and then rollback
+* -o, --output-format=default  Result output format (default, md, json, yaml)
+
+### Evaluate 2-Way-SQL
+
+```
+$ twowaysql eval -p first_name=Malvina testdata/postgres/sql/select_person.sql
+# Converted Source
+
+SELECT email, first_name, last_name FROM persons WHERE first_name=?/*first_name*/;
+
+# Parameters
+
+- Malvina
+```
+
+### Customize CLI tool
+
+by default `twowaysql` integrated with the following drivers:
+
+* ``github.com/jackc/pgx/v4``
+* ``modernc.org/sqlite``
+* ``github.com/go-sql-driver/mysql``
+
+If you want to add/remove [drivers](https://github.com/golang/go/wiki/SQLDrivers), create simple main package and call `cli.Main()`.
+
+```go
+package main
+
+import (
+	_ "github.com/sijms/go-ora/v2" // Oracle
+
+	"github.com/future-architect/go-twowaysql/cli"
+)
+
+func main() {
+	cli.Main()
+}
 ```
 
 ## License

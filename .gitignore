@@ -5,6 +5,11 @@ server/bin
 **/bin/lambda
 **/bin/lambda.zip
 !*.go
+cmd/twowaysql/twowaysql
 
 # Goland
 .idea
+
+.env.local
+
+.DS_Store
