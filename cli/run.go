@@ -38,7 +38,7 @@ var outputFormats = map[string]formatdata.OutputFormat{
 	"yaml":    formatdata.YAML,
 }
 
-func run(driver, dbSrc, srcPath string, params []string, explain, rollback bool, outputFormat string, out io.Writer) error {
+func run(driver, dbSrc, srcFilePath string, params []string, explain, rollback bool, outputFormat string, out io.Writer) error {
 	stat, _ := os.Stdin.Stat()
 	var finalParams map[string]any
 	var err error
@@ -51,12 +51,10 @@ func run(driver, dbSrc, srcPath string, params []string, explain, rollback bool,
 		return err
 	}
 
-	src, err := os.ReadFile(srcPath)
+	srcSql, err := readSql(srcFilePath)
 	if err != nil {
 		return err
 	}
-
-	srcSql := string(src)
 
 	var result []map[string]any
 

@@ -421,7 +421,6 @@ var (
 		},
 	}
 
-
 	wantIfElifElse = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
@@ -485,10 +484,9 @@ var (
 			kind: tkSQLStmt,
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
-
 	}
 
-	wantIfNest =  &tree{
+	wantIfNest = &tree{
 		Kind: ndSQLStmt,
 		Left: &tree{
 			Kind: ndIf,
@@ -580,9 +578,4 @@ var (
 			str:  "SELECT * FROM person WHERE employee_no < 1000 ",
 		},
 	}
-
 )
-
-
-
-

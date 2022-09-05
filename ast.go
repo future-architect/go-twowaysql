@@ -29,10 +29,10 @@ type tree struct {
 // 生成規則:
 // program = stmt
 // stmt = 	SQLStmt stmt |
-//			BIND	stmt |
-//		  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt |
-//			EndOfProgram
 //
+//		BIND	stmt |
+//	  	"IF" stmt ("ELLF" stmt)* ("ELSE" stmt)? "END" stmt |
+//		EndOfProgram
 func ast(tokens []token) (*tree, error) {
 	node, err := program(tokens)
 	if err != nil {
