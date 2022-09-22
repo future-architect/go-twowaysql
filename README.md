@@ -109,7 +109,7 @@ Query takes 22.804166ms
 
 ### Evaluate 2-Way-SQL
 
-```
+```sh
 $ twowaysql eval -p first_name=Malvina testdata/postgres/sql/select_person.sql
 # Converted Source
 
@@ -119,6 +119,40 @@ SELECT email, first_name, last_name FROM persons WHERE first_name=?/*first_name*
 
 - Malvina
 ```
+
+### Unittesting
+
+```sh
+$ twowaysql test testdata/postgres/sql/select_person.sql
+```
+
+Test code is written in Markdown with the following format:
+
+* Single level 2 heading with "Test" or "Tests" label that contains all tests
+* Each test has level 3 headings with "Case:" prefix and test name
+* Each test can have YAML as a test code with the following keys:
+	* `fixtures`(optional): These contents are imported as a test data
+	* `params`(optional): This is an parameter of two way SQL
+	* `testQuery`(optional): This is an query SQL to access table to check result. If you omit this, test runner gets result from SQL itself.
+	* `expect`: This is an expected result.
+
+Fixtures and expect should be nested list(first line is header) or list of maps.
+
+~~~~md
+## Tests
+
+### Case: Query Evan Test
+
+```yaml
+fixtures:
+  persons:
+    - [employee_no, dept_no, first_name, last_name, email, created_at]
+    - [4, 13, Dan, Conner, dan@example.com, 2022-09-13 10:30:15]
+params: { first_name: Dan }
+expect:
+  - { email: dan@example.com, first_name: Dan } 
+```
+~~~~
 
 ### Customize CLI tool
 

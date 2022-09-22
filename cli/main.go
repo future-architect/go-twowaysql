@@ -21,6 +21,11 @@ var (
 	runRollback     = runCommand.Flag("rollback", "Run within transaction and then rollback").Short('r').NoEnvar().Bool()
 	runOutputFormat = runCommand.Flag("output-format", "Result output format (default, md, json, yaml)").Short('o').Default("default").Enum("default", "md", "json", "yaml")
 
+	testCommand = app.Command("test", "Run test")
+	testFiles   = testCommand.Arg("file/dir", "Markdown file").Required().NoEnvar().ExistingFilesOrDirs()
+	testVerbose = testCommand.Flag("verbose", "Show more information").Short('v').Bool()
+	testQuiet   = testCommand.Flag("quiet", "Reduce information").Short('q').Bool()
+
 	evalCommand = app.Command("eval", "Parse and evaluate SQL")
 	evalFile    = evalCommand.Arg("file", "SQL/Markdown file").Required().NoEnvar().ExistingFile()
 	evalParam   = evalCommand.Flag("param", "Parameter in single value or JSON (name=bob, or {\"name\": \"bob\"})").Short('p').NoEnvar().Strings()
@@ -39,9 +44,11 @@ var (
 )
 
 func Main() {
+	app.HelpFlag.Short('h')
 	godotenv.Load(".env.local", ".env")
 
 	var err error
+	ok := true
 	switch kingpin.MustParse(app.Parse(os.Args[1:])) {
 	case listDriverCommand.FullCommand():
 		listDriver()
@@ -49,6 +56,8 @@ func Main() {
 		err = eval(*evalFile, *evalParam)
 	case runCommand.FullCommand():
 		err = run(*driver, *source, *runFile, *runParam, *runExplain, *runRollback, *runOutputFormat, nil)
+	case testCommand.FullCommand():
+		ok, err = unittest(*driver, *source, *testFiles, *testVerbose, *testQuiet)
 	case parseCommand.FullCommand():
 		err = parseFile(*parseSrcFile, *parseDumpFormat)
 	case generateTemplateCommand.FullCommand():
@@ -56,6 +65,8 @@ func Main() {
 	}
 	if err != nil {
 		color.New(color.FgHiRed).Fprintln(os.Stderr, err.Error())
+	}
+	if err != nil || !ok {
 		os.Exit(1)
 	}
 }
