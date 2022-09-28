@@ -2,30 +2,19 @@ package cli
 
 import (
 	"bytes"
-	"fmt"
-	"os"
 	"strings"
 	"testing"
 
-	"github.com/future-architect/go-twowaysql"
+	"github.com/future-architect/go-twowaysql/private/testhelper"
 	"github.com/shibukawa/acquire-go"
 	"gotest.tools/v3/assert"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
 
-func sourceStr(t *testing.T) string {
-	t.Helper()
-	if host, ok := os.LookupEnv("POSTGRES_HOST"); ok {
-		return fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host)
-	} else {
-		return "host=localhost user=postgres password=postgres dbname=postgres sslmode=disable"
-	}
-}
-
 func Test_run(t *testing.T) {
 	driver := "pgx"
-	dbSrc := sourceStr(t)
+	dbSrc := testhelper.SourceStr(t)
 	type args struct {
 		srcPath      string
 		params       []string
@@ -46,7 +35,7 @@ func Test_run(t *testing.T) {
 				params:       []string{"first_name=Evan"},
 				outputFormat: "json",
 			},
-			wantOut: twowaysql.TrimIndent(t, `
+			wantOut: testhelper.TrimIndent(t, `
 			[
 			  {
 			    "email": "evanmacmans@example.com",
@@ -62,7 +51,7 @@ func Test_run(t *testing.T) {
 				params:       []string{"first_name=Evan"},
 				outputFormat: "yaml",
 			},
-			wantOut: twowaysql.TrimIndent(t, `
+			wantOut: testhelper.TrimIndent(t, `
 				- email: evanmacmans@example.com
 				  first_name: Evan
 				  last_name: MacMans`),

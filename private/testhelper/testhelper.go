@@ -1,6 +1,8 @@
-package twowaysql
+package testhelper
 
 import (
+	"fmt"
+	"os"
 	"regexp"
 	"strings"
 	"testing"
@@ -23,4 +25,13 @@ func TrimIndent(t *testing.T, src string) string {
 		}
 	}
 	return b.String()
+}
+
+func SourceStr(t *testing.T) string {
+	t.Helper()
+	if host, ok := os.LookupEnv("POSTGRES_HOST"); ok {
+		return fmt.Sprintf("host=%s user=postgres password=postgres dbname=postgres sslmode=disable", host)
+	} else {
+		return "host=localhost user=postgres password=postgres dbname=postgres sslmode=disable"
+	}
 }
