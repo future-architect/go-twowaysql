@@ -472,6 +472,80 @@ func TestTxBlock(t *testing.T) {
 
 }
 
+func TestTxBlockPanic(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+	db := open(t)
+	defer db.Close()
+	tw := New(db)
+	ctx := context.Background()
+
+	// insert test data
+	const insertSQL = `
+	INSERT INTO persons
+		(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+		(15, 151, 'Tom', 'Mike', 'tommike@example.com', CURRENT_TIMESTAMP)
+		;`
+	if _, err := tw.Exec(ctx, insertSQL, nil); err != nil {
+		t.Fatal(err)
+	}
+	defer tw.Exec(ctx, `DELETE FROM persons WHERE employee_no = 15`, nil)
+
+	type Param struct {
+		EmpNo     int    `twowaysql:"EmpNo"`
+		FirstName string `twowaysql:"firstName"`
+	}
+
+	defer func() {
+		p := recover()
+		assert.Equal(t, p != nil, true)
+
+		// check
+		people := []Person{}
+		const checkSQL = `SELECT first_name, last_name, email FROM persons WHERE employee_no = 15`
+		if err := tw.Select(ctx, &people, checkSQL, nil); err != nil {
+			t.Error(err)
+		}
+		expectedAfterCommit := []Person{
+			{
+				FirstName: "Tom",
+				LastName:  "Mike",
+				Email:     "tommike@example.com",
+			},
+		}
+		if !match(expectedAfterCommit, people) {
+			t.Errorf("expected:\n%v\nbut got\n%v\n", expectedAfterCommit, people)
+		}
+	}()
+
+	// rollcack case (panic recover)
+	err := tw.Transaction(ctx, func(tx *TwowaysqlTx) error {
+		// update
+		const sql = `
+		UPDATE
+			persons
+		SET first_name = /*firstName*/Jon
+		WHERE employee_no = /*EmpNo*/10`
+		param := Param{EmpNo: 15, FirstName: "ROLLBACKED(PANIC)"}
+		res, err := tx.Exec(ctx, sql, &param)
+		if err != nil {
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows != 1 {
+			return fmt.Errorf("update rows = %v", rows)
+		}
+
+		// occure panic
+		panic("test panic")
+	})
+
+	assert.NilError(t, err)
+}
+
 func open(t *testing.T) *sqlx.DB {
 	t.Helper()
 	var db *sqlx.DB

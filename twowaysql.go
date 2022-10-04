@@ -91,6 +91,14 @@ func (t *Twowaysql) Transaction(ctx context.Context, fn func(tx *TwowaysqlTx) er
 	if err != nil {
 		return err
 	}
+	defer func() {
+		if p := recover(); p != nil {
+			if rerr := tx.Rollback(); rerr != nil {
+				panic(fmt.Sprintf("panic occured %v and failed rollback %v", p, rerr))
+			}
+			panic(p)
+		}
+	}()
 
 	if err := fn(tx); err != nil {
 		if rerr := tx.Rollback(); rerr != nil {
