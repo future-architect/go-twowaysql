@@ -446,6 +446,34 @@ func TestTxBlock(t *testing.T) {
 		t.Error("unexpecte err == nil")
 	}
 
+	// rollcack case (panic recover)
+	err = tw.Transaction(ctx, func(tx *TwowaysqlTx) error {
+		// update
+		const sql = `
+		UPDATE
+			persons
+		SET first_name = /*firstName*/Jon
+		WHERE employee_no = /*EmpNo*/10`
+		param := Param{EmpNo: 14, FirstName: "ROLLBACKED(PANIC)"}
+		res, err := tx.Exec(ctx, sql, &param)
+		if err != nil {
+			return err
+		}
+		rows, err := res.RowsAffected()
+		if err != nil {
+			return err
+		}
+		if rows != 1 {
+			return fmt.Errorf("update rows = %v", rows)
+		}
+
+		// occure panic
+		panic("test panic")
+	})
+	if err == nil {
+		t.Error("unexpecte err == nil")
+	}
+
 	// check
 	people := []Person{}
 	const checkSQL = `SELECT first_name, last_name, email FROM persons WHERE employee_no IN (13, 14) order by employee_no`
