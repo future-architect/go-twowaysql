@@ -24,10 +24,10 @@ require (
 require (
 	github.com/future-architect/go-exceltesting v0.3.1
 	github.com/shibukawa/acquire-go v1.0.0
-	github.com/shibukawa/formatdata-go v0.1.2
-	github.com/shibukawa/mdd-go v0.1.6
+	github.com/shibukawa/formatdata-go v0.1.3
+	github.com/shibukawa/mdd-go v0.1.7
 	github.com/stretchr/testify v1.8.0
-	golang.org/x/crypto v0.0.0-20220817201139-bc19a97f63c8
+	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b
 	gopkg.in/yaml.v2 v2.4.0
 )
 
