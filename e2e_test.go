@@ -201,7 +201,7 @@ func TestExec_Parallel(t *testing.T) {
 		(/*EmpNo*/1, /*deptNo*/1, /*firstName*/'firstName', /*lastName*/'lastName', /*email*/'temp', CURRENT_TIMESTAMP)
 	`
 
-	eg := new(errgroup.Group)
+	var eg errgroup.Group
 
 	for _, param := range params {
 		p := param
