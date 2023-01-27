@@ -11,6 +11,7 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 	"github.com/jmoiron/sqlx"
+	"golang.org/x/sync/errgroup"
 	"gotest.tools/v3/assert"
 	"gotest.tools/v3/assert/cmp"
 )
@@ -159,6 +160,76 @@ func TestUpdate(t *testing.T) {
 		},
 	}
 	assert.Check(t, cmp.DeepEqual(people, expected))
+}
+
+func TestExec_Parallel(t *testing.T) {
+	//このテストはinit.sqlに依存しています。
+	//データベースは/postgres/init以下のsqlファイルを用いて初期化されている。
+
+	db := open(t)
+	defer db.Close()
+	tw := New(db)
+	ctx := context.Background()
+
+	var params = []Info{}
+	var expect []Person
+
+	for i := 0; i < 100; i++ {
+		empNo := i + 4
+		info :=
+			Info{
+				EmpNo:     empNo,
+				DeptNo:    1,
+				FirstName: fmt.Sprintf("FirstName-%d", empNo),
+				LastName:  fmt.Sprintf("LastName-%d", empNo),
+				Email:     fmt.Sprintf("%d@test", empNo),
+			}
+		params = append(params, info)
+
+		person :=
+			Person{
+				FirstName: fmt.Sprintf("FirstName-%d", empNo),
+				LastName:  fmt.Sprintf("LastName-%d", empNo),
+				Email:     fmt.Sprintf("%d@test", empNo),
+			}
+		expect = append(expect, person)
+	}
+
+	sql :=
+		`
+		INSERT INTO persons(employee_no, dept_no, first_name, last_name, email, created_at) VALUES
+		(/*EmpNo*/1, /*deptNo*/1, /*firstName*/'firstName', /*lastName*/'lastName', /*email*/'temp', CURRENT_TIMESTAMP)
+	`
+
+	var eg errgroup.Group
+
+	for _, param := range params {
+		p := param
+		eg.Go(func() error {
+			_, err := tw.Exec(ctx, sql, &p)
+			return err
+		})
+	}
+	if err := eg.Wait(); err != nil {
+		t.Fatalf("exec: failed: %v", err)
+	}
+
+	var people []Person
+	err := tw.Select(ctx, &people, `SELECT first_name, last_name, email FROM persons WHERE dept_no = 1 order by employee_no`, nil)
+	if err != nil {
+		t.Fatalf("select: failed: %v", err)
+	}
+
+	// 元に戻す。
+	for _, param := range params {
+		p := param
+		_, err = tw.Exec(ctx, `DELETE from persons WHERE employee_no = /*EmpNo*/1`, &p)
+		if err != nil {
+			t.Fatalf("exec: failed: %v", err)
+		}
+	}
+
+	assert.Check(t, cmp.DeepEqual(people, expect))
 }
 
 func TestInsertAndDelete(t *testing.T) {

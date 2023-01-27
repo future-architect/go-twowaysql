@@ -5,7 +5,7 @@ go 1.18
 require (
 	github.com/alecthomas/chroma v0.10.0
 	github.com/fatih/color v1.13.0
-	github.com/future-architect/tagscanner v1.0.1
+	github.com/future-architect/tagscanner v1.0.3
 	github.com/go-sql-driver/mysql v1.6.0
 	github.com/goccy/go-yaml v1.9.5
 	github.com/google/go-cmp v0.5.9
@@ -28,10 +28,12 @@ require (
 	github.com/shibukawa/mdd-go v0.1.7
 	github.com/stretchr/testify v1.8.0
 	golang.org/x/crypto v0.0.0-20221005025214-4161e89ecf1b
+	golang.org/x/sync v0.0.0-20210220032951-036812b2e83c
 	gopkg.in/yaml.v2 v2.4.0
 )
 
 require (
+	github.com/Songmu/gocredits v0.2.0 // indirect
 	github.com/acarl005/stripansi v0.0.0-20180116102854-5a71ef0e047d // indirect
 	github.com/alecthomas/chroma/v2 v2.2.0 // indirect
 	github.com/alecthomas/template v0.0.0-20190718012654-fb15b899a751 // indirect
