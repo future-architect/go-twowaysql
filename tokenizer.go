@@ -37,6 +37,11 @@ func tokenize(str string) ([]token, error) {
 
 	for index < length {
 		if str[index:index+2] == "/*" {
+			if str[index:index+3] == "/*+" {
+				// hint句の場合はskipする
+				index++
+				continue
+			}
 			//コメントの直前の塊をTKSQLStmtとしてappend
 			tokens = append(tokens, token{
 				kind: tkSQLStmt,

@@ -1011,6 +1011,86 @@ WHERE
 				},
 			},
 		},
+		{
+			name: "if and bind with hints",
+			input: `
+/*+
+Leading((a (b c)))
+HashJoin(b c)
+*/
+SELECT
+	*
+FROM
+	person a
+INNER JOIN
+	company b
+ON a.interest = b.category
+INNER JOIN
+	market c
+ON b.industry = c.industry
+WHERE
+	a.employee_no	<	/*maxEmpNo*/1000
+	/* IF false */
+		AND	a.dept_no		=	/*deptNo*/1
+	/* END */`,
+			want: []token{
+				{
+					kind: tkSQLStmt,
+					str: `
+/*+
+Leading((a (b c)))
+HashJoin(b c)
+*/
+SELECT
+	*
+FROM
+	person a
+INNER JOIN
+	company b
+ON a.interest = b.category
+INNER JOIN
+	market c
+ON b.industry = c.industry
+WHERE
+	a.employee_no	<	`,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*maxEmpNo*/",
+					value: "maxEmpNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  "\n\t",
+				},
+				{
+					kind:      tkIf,
+					str:       "/* IF false */",
+					condition: "false",
+				},
+				{
+					kind: tkSQLStmt,
+					str: `
+		AND	a.dept_no		=	`,
+				},
+				{
+					kind:  tkBind,
+					str:   "?/*deptNo*/",
+					value: "deptNo",
+				},
+				{
+					kind: tkSQLStmt,
+					str:  "\n\t",
+				},
+				{
+					kind: tkEnd,
+					str:  "/* END */",
+				},
+				{
+					kind: tkEndOfProgram,
+				},
+			},
+		},
 	}
 
 	for _, tt := range tests {
