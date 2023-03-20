@@ -727,6 +727,60 @@ func TestEval(t *testing.T) {
 			`,
 			wantParams: []interface{}{},
 		},
+		{
+			name: "skip hints",
+			input: `
+			/*+
+				HashJoin(a b)
+				SeqScan(a)
+			*/
+			SELECT
+				first_name
+			,	last_name
+			,	email
+			FROM
+				persons	a
+			INNER JOIN
+				persons	b
+			ON
+				a.dept_no	=	b.dept_no
+			WHERE
+				a.employee_no	<	/*maxEmpNo*/1000
+			/*
+				IF deptNo
+			*/
+			AND	a.dept_no		<	/*deptNo*/1
+			/*
+				END
+			*/
+			`,
+			inputParams: Info{
+				MaxEmpNo: 3,
+				DeptNo:   12,
+			},
+			wantQuery: `
+			/*+
+				HashJoin(a b)
+				SeqScan(a)
+			*/
+			SELECT
+				first_name
+			,	last_name
+			,	email
+			FROM
+				persons	a
+			INNER JOIN
+				persons	b
+			ON
+				a.dept_no	=	b.dept_no
+			WHERE
+				a.employee_no	<	?/*maxEmpNo*/
+			
+			AND	a.dept_no		<	?/*deptNo*/
+			
+			`,
+			wantParams: []interface{}{3, 12},
+		},
 	}
 
 	for _, tt := range tests {
